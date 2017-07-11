@@ -1,0 +1,7 @@
+ca/uqam/projet/repositories/BixiRepository.class
+ca/uqam/projet/Application.class
+ca/uqam/projet/controllers/ApplicationController.class
+ca/uqam/projet/repositories/BixiRowMapper.class
+ca/uqam/projet/resources/Lieu.class
+ca/uqam/projet/resources/Bixi.class
+ca/uqam/projet/resources/Activity.class
