@@ -12,7 +12,7 @@ CREATE TABLE activities (
     description text,
     district text,
     venueName text,
-    venue point
+    venue GEOGRAPHY(POINT, 4326)
 );
 
 CREATE TABLE activities_date (

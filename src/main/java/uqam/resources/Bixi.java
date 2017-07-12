@@ -1,4 +1,4 @@
-package resources;
+package uqam.resources;
 
 import org.springframework.stereotype.*;
 

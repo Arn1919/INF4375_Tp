@@ -1,12 +1,12 @@
-package repositories;
+package uqam.repositories;
 
+import uqam.resources.Bixi;
 import java.util.*;
 import java.util.stream.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 
-import resources.*;
 
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.jdbc.core.*;

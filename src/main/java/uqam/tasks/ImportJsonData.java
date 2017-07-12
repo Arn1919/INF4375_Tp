@@ -1,12 +1,16 @@
-package tasks;
+package uqam.tasks;
 
-import repositories.*;
-import resources.*;
+import uqam.repositories.BixiRepository;
+import uqam.repositories.ActivityRepository;
+import uqam.resources.Lieu;
+import uqam.resources.Activity;
+import uqam.resources.Bixi;
 
 import java.util.*;
 import java.io.*;
 
 import com.fasterxml.jackson.annotation.*;
+import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.*;
@@ -28,6 +32,7 @@ public class ImportJsonData {
     @Autowired
     private BixiRepository bixiRepository;
 
+    @PostConstruct
     public void parseActivities() throws Exception {
         try {
             // Parser du JsonFile
@@ -73,7 +78,7 @@ public class ImportJsonData {
         }
     }
 
-    @Scheduled(cron = "*/2 * * * * ?") // à toutes les 2 secondes.
+    //@Scheduled(cron = "*/2 * * * * ?") // à toutes les 2 secondes.
     public void parseBixies() {
         try {
 

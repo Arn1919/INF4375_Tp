@@ -1,5 +1,5 @@
 
-package resources;
+package uqam.resources;
 
 /* Libraries */
 
