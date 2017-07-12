@@ -29,8 +29,10 @@ CREATE TABLE bixies (
     station_is_blocked boolean,
     station_under_maintenance boolean,
     station_out_of_order boolean,
-    millis_last_update integer,
-    millis_last_server_communication integer,
+    millis_last_update bigint,
+    millis_last_server_communication bigint,
+    bk boolean,
+    bl boolean,
     lat decimal,
     lng decimal,
     available_terminals int,
@@ -38,3 +40,24 @@ CREATE TABLE bixies (
     available_bikes int,
     unavailable_bikes int
 );
+
+
+INSERT INTO bixies (id, 
+                    station_name, 
+                    station_id, 
+                    station_state,
+                    station_is_blocked, 
+                    station_under_maintenance, 
+                    station_out_of_order,
+                    millis_last_update, 
+                    millis_last_server_communication, 
+                    bk, 
+                    bl,
+                    lat, 
+                    lng, 
+                    available_terminals, 
+                    unavailable_terminals,
+                    available_bikes, 
+                    unavailable_bikes)
+VALUES (1, 'test', 2, 0, false, false, false, 123334634, 
+12521513, false, false, 12.342525, -17.141531, 15, 0, 0, 0 );

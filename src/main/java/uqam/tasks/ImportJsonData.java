@@ -10,6 +10,8 @@ import java.util.*;
 import java.io.*;
 
 import com.fasterxml.jackson.annotation.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.*;
@@ -32,7 +34,7 @@ public class ImportJsonData {
     @Autowired
     private BixiRepository bixiRepository;
 
-    @PostConstruct
+    //@PostConstruct
     public void parseActivities() throws Exception {
         try {
             // Parser du JsonFile
@@ -79,16 +81,23 @@ public class ImportJsonData {
     }
 
     //@Scheduled(cron = "*/2 * * * * ?") // à toutes les 2 secondes.
+    @PostConstruct
     public void parseBixies() {
         try {
 
             RandomStation station = new RestTemplate().getForObject(BIXI_URL, RandomStation.class);
-            System.out.println("TEST HERE: " + asBixi(station.randomBixiList.get(0)).toString());
             station.randomBixiList.stream()
                     .map(this::asBixi)
-                    .forEach(bixiRepository::insert);
+                    .forEach((bixi) -> {
+                try {
+                    bixiRepository.insert(bixi);
+                } catch (Exception ex) {
+                    Logger.getLogger(ImportJsonData.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            });
         } catch (Exception e) {
             System.out.println("EXCEPTION ERROR: Exception thrown in Bixies Json Parser");
+            System.out.println(e);
             e.getMessage();
         }
 
@@ -96,7 +105,8 @@ public class ImportJsonData {
 
     private Bixi asBixi(RandomBixi b) {
 
-        return new Bixi(b.id,
+        return new Bixi(
+                b.id,
                 b.stationName,
                 b.stationId,
                 b.stationState,
@@ -105,12 +115,15 @@ public class ImportJsonData {
                 b.stationOutOforder,
                 b.millisLastUpdate,
                 b.millisLastServerCommunication,
+                b.bk,
+                b.bl,
                 b.lat,
                 b.lng,
                 b.availableTerminals,
                 b.unavailableTerminals,
                 b.availableBikes,
-                b.unavailableBikes);
+                b.unavailableBikes
+        );
     }
 
 }
@@ -146,9 +159,9 @@ class RandomBixi {
     @JsonProperty("lc")
     long millisLastServerCommunication;
     @JsonProperty("bk")
-    boolean usageFutur1;
+    boolean bk;
     @JsonProperty("bl")
-    boolean usageFutur2;
+    boolean bl;
     @JsonProperty("la")
     double lat;
     @JsonProperty("lo")

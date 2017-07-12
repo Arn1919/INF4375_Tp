@@ -14,6 +14,8 @@ public class Bixi {
     private boolean stationOutOforder;
     private long millisLastUpdate;
     private long millisLastServerCommunication;
+    private boolean bk;
+    private boolean bl;
     private double lat;
     private double lng;
     private int availableTerminals;
@@ -35,6 +37,8 @@ public class Bixi {
             boolean stationOutOforder,
             long millisLastUpdate,
             long millisLastServerCommunication,
+            boolean bk,
+            boolean bl,
             double lat,
             double lng,
             int availableTerminals,
@@ -50,6 +54,8 @@ public class Bixi {
         this.stationOutOforder = stationOutOforder;
         this.millisLastUpdate = millisLastUpdate;
         this.millisLastServerCommunication = millisLastServerCommunication;
+        this.bk = bk;
+        this.bl = bl;
         this.lat = lat;
         this.lng = lng;
         this.availableTerminals = availableTerminals;
@@ -93,6 +99,14 @@ public class Bixi {
 
     public long getMillisLastServerCommunication() {
         return millisLastServerCommunication;
+    }
+    
+    public boolean getBk(){ 
+        return bk;
+    }
+    
+    public boolean getBl(){ 
+        return bl;
     }
 
     public double getLat() {
