@@ -29,8 +29,7 @@ public class BixiRepository {
             + "   , millis_last_server_communication"
             + "   , bk"
             + "   , bl"
-            + "   , lat"
-            + "   , lng"
+            + "   , coordinates"
             + "   , available_terminals"
             + "   , unavailable_terminals"
             + "   , available_terminals"
@@ -54,8 +53,7 @@ public class BixiRepository {
             + "   , millis_last_server_communication"
             + "   , bk"
             + "   , bl"
-            + "   , lat"
-            + "   , lng"
+            + "   , coordinates"
             + "   , available_terminals"
             + "   , unavailable_terminals"
             + "   , available_terminals"
@@ -81,8 +79,7 @@ public class BixiRepository {
             + "   , millis_last_server_communication"
             + "   , bk"
             + "   , bl"
-            + "   , lat"
-            + "   , lng"
+            + "   , coordinates"
             + "   , available_terminals"
             + "   , unavailable_terminals"
             + "   , available_terminals"
@@ -113,13 +110,12 @@ public class BixiRepository {
             + " millis_last_server_communication, "
             + " bk, "
             + " bl, "
-            + " lat, "
-            + " lng, "
+            + " coordinates, "
             + " available_terminals, "
             + " unavailable_terminals, "
             + " available_bikes, "
             + " unavailable_bikes)"
-            + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ST_GeographyFromText('SRID=4326;POINT(' || ? || ' ' || ? || ')'), ?, ?, ?, ?)"
             + " on conflict do nothing";
 
     public int insert(Bixi bixi) throws Exception {
@@ -134,7 +130,7 @@ public class BixiRepository {
             PreparedStatement ps = conn.prepareStatement(INSERT_STMT);
             ps.setInt(1, bixi.getId());
             ps.setString(2, bixi.getStationName());
-            ps.setInt(3, bixi.getStationId());
+            ps.setString(3, bixi.getStationId());
             ps.setInt(4, bixi.getStationState());
             ps.setBoolean(5, bixi.getStationIsBlocked());
             ps.setBoolean(6, bixi.getStationUnderMaintenance());
@@ -162,7 +158,7 @@ class BixiRowMapper implements RowMapper<Bixi> {
         return new Bixi(
                 rs.getInt("id"),
                 rs.getString("station_name"),
-                rs.getInt("station_id"),
+                rs.getString("station_id"),
                 rs.getInt("station_state"),
                 rs.getBoolean("station_is_blocked"),
                 rs.getBoolean("station_under_maintenance"),
@@ -171,8 +167,8 @@ class BixiRowMapper implements RowMapper<Bixi> {
                 rs.getLong("millis_last_server_communication"),
                 rs.getBoolean("bk"),
                 rs.getBoolean("bl"),
-                rs.getDouble("lat"),
-                rs.getDouble("lng"),
+                rs.getDouble("coordinates"),
+                rs.getDouble("coordinates"),
                 rs.getInt("available_terminals"),
                 rs.getInt("unavailable_terminals"),
                 rs.getInt("available_bikes"),

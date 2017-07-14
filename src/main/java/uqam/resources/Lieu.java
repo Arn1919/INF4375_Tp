@@ -13,7 +13,7 @@ public class Lieu {
   private double lng;
 
   public Lieu(){
-
+      
   }
 
   public Lieu(String nom){

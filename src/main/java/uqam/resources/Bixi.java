@@ -7,7 +7,7 @@ public class Bixi {
 
     private int id;
     private String stationName;
-    private int stationId;
+    private String stationId;
     private int stationState;
     private boolean stationIsBlocked;
     private boolean stationUnderMaintenance;
@@ -30,7 +30,7 @@ public class Bixi {
     // Constructor with parameters
     public Bixi(int id,
             String stationName,
-            int stationId,
+            String stationId,
             int stationState,
             boolean stationIsBlocked,
             boolean stationUnderMaintenance,
@@ -73,7 +73,7 @@ public class Bixi {
         return stationName;
     }
 
-    public int getStationId() {
+    public String getStationId() {
         return stationId;
     }
 

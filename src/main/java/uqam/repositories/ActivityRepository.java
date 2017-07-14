@@ -24,8 +24,8 @@ public class ActivityRepository {
             + "   , name"
             + "   , description"
             + "   , district"
-            + "   , venueName"
-            + "   , venue"
+            + "   , venue_name"
+            + "   , coordinates"
             + "   , event_date"
             + " from"
             + "   activities"
@@ -44,8 +44,8 @@ public class ActivityRepository {
             + "   , name"
             + "   , description"
             + "   , district"
-            + "   , venueName"
-            + "   , venue"
+            + "   , venue_name"
+            + "   , coordinates"
             + "   , event_date"
             + " from"
             + "   activities"
@@ -66,8 +66,8 @@ public class ActivityRepository {
             + "   , ts_headline(name, q, 'HighlightAll = true') as name"
             + "   , description"
             + "   , district"
-            + "   , venueName"
-            + "   , venue"
+            + "   , venue_name"
+            + "   , coordinates"
             + "   , event_date"
             + " from"
             + "     activities"
@@ -87,15 +87,16 @@ public class ActivityRepository {
     }
 
     private static final String INSERT_STMT
-            = " INSERT INTO activities (id, name, description, district, venueName, venue)"
+            = " INSERT INTO activities (id, name, description, district, venue_name, coordinates)"
             + " VALUES (?, ?, ?, ?, ?, ST_GeographyFromText('SRID=4326;POINT(' || ? || ' ' || ? || ')'))"
-            + " on conflict do nothing" // DO SOMETHING HERE INSTEAD
+            + " on conflict do nothing" 
             ;
 
     private static final String INSERT_STMT_DATE
             = " INSERT INTO activities_date (event_date, event_id)"
             + " VALUES (?, ?)"
-            + " on conflict do nothing" // DO SOMETHING HERE INSTEAD
+            + " on conflict (event_date, event_id) do nothing"
+           // + " on conflict do nothing"
             ;
 
     /**
@@ -108,6 +109,7 @@ public class ActivityRepository {
     public int insert(Activity activity) throws Exception {
         int numRowsAct = 0;
         int numRowsDate = 0;
+        
             // Message: Insertion table activities avec succes
             numRowsAct = insertActivity(activity);
             System.out.println("TABLE ACTIVITIES: " + 1 + " ROW(S) AFFECTED.");
@@ -163,42 +165,13 @@ public class ActivityRepository {
         });
     }
 
-//    /**
-//     * Determine si l'activite existe dans la bd deja
-//     *
-//     * @param activity
-//     * @return boolean
-//     */
-//    public boolean activityExistsInDatabase(Activity activity) {
-//        if (findById(activity.getId()) != null) {
-//            return true;
-//        } else {
-//            return false;
-//        }
-//
-//    }
-//
-//    /**
-//     * Determine si la date existe dans la bd deja
-//     *
-//     * @param id
-//     * @param date
-//     * @return boolean
-//     */
-//    public boolean datesExistInDatabase(int id, String date) {
-//        Activity databaseActivity = findById(id);
-//        for(int i = 0; i < databaseActivity.getDates().size(); i++){
-//            if( date.equals(databaseActivity.getDates().get(i))){
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
+
 
 }
 
 class ActivityRowMapper implements RowMapper<Activity> {
 
+    @Override
     public Activity mapRow(ResultSet rs, int rowNum) throws SQLException {
         return new Activity(
                 rs.getInt("activity.id"), 
@@ -206,9 +179,9 @@ class ActivityRowMapper implements RowMapper<Activity> {
                 rs.getString("description"), 
                 rs.getString("district"), 
                 (ArrayList<String>) rs.getArray("event_date"), 
-                new Lieu( rs.getString("venueName"),
-                          rs.getDouble("venue"),
-                          rs.getDouble("venue") )
+                new Lieu( rs.getString("venue_name"),
+                          rs.getDouble("coordinates"),
+                          rs.getDouble("coordinates") )
         );
     }
 }

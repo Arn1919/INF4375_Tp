@@ -1,0 +1,87 @@
+{
+  "stations": {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "required": [
+        "id",
+        "s",
+        "n",
+        "st",
+        "b",
+        "su",
+        "m",
+        "lu",
+        "lc",
+        "bk",
+        "bl",
+        "la",
+        "lo",
+        "da",
+        "dx",
+        "ba",
+        "bx"
+      ],
+      "maxProperties": 17,
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "s": {
+          "type": "string"
+        },
+        "n": {
+          "type": "string"
+        },
+        "st": {
+          "type": "integer"
+        },
+        "b": {
+          "type": "boolean"
+        },
+        "su": {
+          "type": "boolean"
+        },
+        "m": {
+          "type": "boolean"
+        },
+        "lu": {
+          "type": "long"
+        },
+        "lc": {
+          "type": "long"
+        },
+        "bk": {
+          "type": "boolean"
+        },
+        "bl": {
+          "type": "boolean"
+        },
+        "la": {
+          "type": "double"
+        },
+        "lo": {
+          "type": "double"
+        },
+        "da": {
+          "type": "integer"
+        },
+        "dx": {
+          "type": "integer"
+        },
+        "ba": {
+          "type": "integer"
+        },
+        "bx": {
+          "type": "integer"
+        }
+      }
+    }
+  },
+  "schemeSuspended": {
+    "type": "boolean"
+  },
+  "timestamp": {
+    "type": "long"
+  }
+}
