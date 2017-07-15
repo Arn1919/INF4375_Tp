@@ -61,11 +61,13 @@ public class ImportJsonData {
      * insere dans le repositoire
      *
      */
-    //@PostConstruct
+    @PostConstruct
     public void parseActivities() {
 
         try (FileReader reader = new FileReader(ACTIVITY_JSON_FILE_PATH)) {
-
+            
+            Activity test = activityRepository.findById(279);
+            List<Activity> testList = activityRepository.findAll();
             // Parser du JsonFile
             JSONParser parser = new JSONParser();
             Object obj = parser.parse(reader);
@@ -105,12 +107,13 @@ public class ImportJsonData {
 
         } catch (IOException e) {
             System.out.println("FILE NOT FOUND EXCEPTION ERROR: Activity Json or JsonSchema file not found.");
+            System.out.println(e);
         } catch (ParseException | NumberFormatException e) {
             System.out.println("EXCEPTION ERROR: ImportJsonData.parseActivities() - ParseException or NumberFormatException");
-            e.getMessage();
+            System.out.println(e);
         } catch (java.lang.Exception e) {
             System.out.println("EXCEPTION ERROR: ImportJsonData.parseActivities() - java.lang.Exception");
-            e.getMessage();
+            System.out.println(e);
         }
 
     }
@@ -124,7 +127,6 @@ public class ImportJsonData {
     //@PostConstruct
     public void parseBixies() {
         try {
-
             RandomStation station = new RestTemplate().getForObject(BIXI_URL, RandomStation.class);
             station.randomBixiList.stream()
                     .map(this::asBixi)
@@ -137,9 +139,10 @@ public class ImportJsonData {
                     });
         } catch (ResourceAccessException e) {
             System.out.println("EXCEPTION ERROR: Error when accessing Bixi json URL");
+            System.out.println(e);
         } catch (java.lang.Exception e) {
             System.out.println("EXCEPTION ERROR: ImportJsonData.parseBixies() - java.lang.Exception");
-            e.getMessage();
+            System.out.println(e);
         }
 
     }
@@ -150,7 +153,7 @@ public class ImportJsonData {
      *
      */
     //@Scheduled(cron = "0 0 0 0 */6 *")
-    @PostConstruct
+    //@PostConstruct
     public void parsePistes() {
         try (FileReader reader = new FileReader(PISTE_JSON_FILE_PATH)) {
 
@@ -197,12 +200,13 @@ public class ImportJsonData {
 
         } catch (IOException e) {
             System.out.println("FILE NOT FOUND EXCEPTION ERROR: Piste Json or JsonSchema file not found.");
+            System.out.println(e);
         } catch (ParseException | NumberFormatException e) {
             System.out.println("EXCEPTION ERROR: ImportJsonData.parsePistes() - ParseException or NumberFormatException");
-            e.getMessage();
+            System.out.println(e);
         } catch (java.lang.Exception e) {
             System.out.println("EXCEPTION ERROR: ImportJsonData.parsePistes() - java.lang.Exception");
-            e.getMessage();
+            System.out.println(e);
         }
     }
 
@@ -232,32 +236,6 @@ public class ImportJsonData {
                 b.unavailableTerminals,
                 b.availableBikes,
                 b.unavailableBikes
-        );
-    }
-
-    /**
-     * Transforme un randomPiste en Piste
-     *
-     * @param p
-     * @return Piste
-     */
-    private Piste asPiste(RandomPisteFeature p) {
-        Point point1 = new Point(p.geometry.coordinates.get(0).get(0).get(0),
-                p.geometry.coordinates.get(0).get(0).get(1));
-        Point point2 = new Point(p.geometry.coordinates.get(0).get(1).get(0),
-                p.geometry.coordinates.get(0).get(1).get(1));
-
-        List<Point> coordinates = new ArrayList();
-        coordinates.add(point1);
-        coordinates.add(point2);
-        return new Piste(
-                (int) p.properties.id,
-                (int) p.properties.typeVoie1,
-                (int) p.properties.typeVoie2,
-                (int) p.properties.longueur,
-                (int) p.properties.nbrVoie,
-                p.properties.nomArrVi,
-                coordinates
         );
     }
 
@@ -338,75 +316,3 @@ class RandomBixi {
     int unavailableBikes;
 }
 
-////////////////////////////////////////////////////////////////////
-//                     
-//                             PISTE
-//
-////////////////////////////////////////////////////////////////////
-class RandomPiste {
-
-    @JsonProperty("type")
-    String type;
-    @JsonProperty("crs")
-    RandomPisteCrs crs;
-    @JsonProperty("features")
-    List<RandomPisteFeature> features;
-}
-
-class RandomPisteCrs {
-
-    @JsonProperty("type")
-    String type;
-    @JsonProperty("properties")
-    RandomPisteCrsProperties properties;
-}
-
-class RandomPisteCrsProperties {
-
-    @JsonProperty("name")
-    String name;
-}
-
-class RandomPisteFeature {
-
-    @JsonProperty("type")
-    String type;
-    @JsonProperty("properties")
-    RandomPisteFeatureProperties properties;
-    @JsonProperty("geometry")
-    RandomPisteFeatureGeometry geometry;
-}
-
-class RandomPisteFeatureProperties {
-
-    @JsonProperty("ID")
-    double id;
-    @JsonProperty("ID_TRC_GEO")
-    double idTrcGeo;
-    @JsonProperty("TYPE_VOIE")
-    double typeVoie1;
-    @JsonProperty("TYPE_VOIE2")
-    double typeVoie2;
-    @JsonProperty("LONGUEUR")
-    double longueur;
-    @JsonProperty("NBR_VOIE")
-    double nbrVoie;
-    @JsonProperty("SEPARATEUR")
-    String separateur;
-    @JsonProperty("SAISONS4")
-    String saisons4;
-    @JsonProperty("PROTEGE_4S")
-    String protege4s;
-    @JsonProperty("Ville_MTL")
-    String villeMTL;
-    @JsonProperty("NOM_ARR_VI")
-    String nomArrVi;
-}
-
-class RandomPisteFeatureGeometry {
-
-    @JsonProperty("type")
-    String type;
-    @JsonProperty("coordinates")
-    List<List<List<Double>>> coordinates;
-}

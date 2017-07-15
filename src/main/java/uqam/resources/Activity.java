@@ -15,14 +15,14 @@ public class Activity {
   private String nom;
   private String description;
   private String arrondissement;
-  private ArrayList<String> dates;
+  private List<String> dates;
   private Lieu lieu;
 
   public Activity(){
 
   }
 
-  public Activity(int id, String nom, String description, String arrondissement, ArrayList<String> dates, Lieu lieu) {
+  public Activity(int id, String nom, String description, String arrondissement, List<String> dates, Lieu lieu) {
     this.id = id;
     this.nom = nom;
     this.description = description;
@@ -35,7 +35,7 @@ public class Activity {
   @JsonProperty public String getNom() { return nom; }
   @JsonProperty public String getDescription() { return description; }
   @JsonProperty public String getArrondissement() { return arrondissement; }
-  @JsonProperty public ArrayList<String> getDates() { return dates; }
+  @JsonProperty public List<String> getDates() { return dates; }
   @JsonProperty public Lieu getLieu() { return lieu;}
 
   @JsonProperty public void setId(int id){ this.id = id; }

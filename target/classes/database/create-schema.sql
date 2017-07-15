@@ -37,7 +37,7 @@ CREATE TABLE bixies (
     coordinates GEOGRAPHY(POINT, 4326),
     available_terminals int,
     unavailable_terminals int,
-    available_bikes int,
+    available_bikes int
     unavailable_bikes int
 );
 

@@ -1,0 +1,25 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Thymeleaf Example</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+        <link rel="stylesheet" th:href="@{/css/main.css}" />
+
+    </head>
+    <body>
+        <h1>Bixi details</h1>
+        <dl>
+            <dt>Identifiant</dt>
+            <dd th:text="${bixi.getId()}" />
+            <dt>Nom Station</dt>
+            <dd th:text="${bixi.getStationName()}" />
+            <dt>Station Id</dt>
+            <dd th:text="${bixi.getStationId()}" />
+            <dt>Available Terminals</dt>
+            <dd th:text="${bixi.getAvailableTerminals()}" />
+            <dt>Available Bikes</dt>
+            <dd th:text="${bixi.getAvailableBikes()}" />
+        </dl>
+    </body>
+</html>

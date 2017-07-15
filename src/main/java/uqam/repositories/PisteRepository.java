@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.sql.PreparedStatement;
 
 import org.springframework.beans.factory.annotation.*;
-import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.*;
 import org.springframework.stereotype.*;
 import uqam.resources.Point;
@@ -26,8 +25,10 @@ public class PisteRepository {
             + "   , longueur"
             + "   , nbr_voie"
             + "   , nom_arr_ville"
-            + "   , coordinates1"
-            + "   , coordinates2"
+            + "   , ST_X(coordinates1::geometry) AS lat1"
+            + "   , ST_Y(coordinates1::geometry) AS lng1"
+            + "   , ST_X(coordinates2::geometry) AS lat2"
+            + "   , ST_Y(coordinates2::geometry) AS lng2"
             + " from"
             + "   pistes";
 
@@ -43,14 +44,21 @@ public class PisteRepository {
             + "   , longueur"
             + "   , nbr_voie"
             + "   , nom_arr_ville"
-            + "   , coordinates1"
-            + "   , coordinates2"
+            + "   , ST_X(coordinates1::geometry) AS lat1"
+            + "   , ST_Y(coordinates1::geometry) AS lng1"
+            + "   , ST_X(coordinates2::geometry) AS lat2"
+            + "   , ST_Y(coordinates2::geometry) AS lng2"
             + " from"
             + "   pistes"
             + " where"
             + "   id = ?";
 
     public Piste findById(int id) {
+        try{
+            Piste test = jdbcTemplate.queryForObject(FIND_BY_ID_STMT, new Object[]{id}, new PisteRowMapper());
+        }catch(Exception e){
+            System.out.println(e);
+        }
         return jdbcTemplate.queryForObject(FIND_BY_ID_STMT, new Object[]{id}, new PisteRowMapper());
     }
 
@@ -73,14 +81,8 @@ public class PisteRepository {
             + " on conflict do nothing";
 
     public int insert(Piste piste) throws Exception {
-        // Message: Insertion table bixies avec succes
-        try{
-            int numRowsPis = insertPiste(piste);
-        }catch(BadSqlGrammarException e){
-            System.out.println("HERE");
-            System.out.println(e);
-            System.out.println("HERE");
-        }
+        int numRowsPis = insertPiste(piste);
+        // Message: Insertion table pistes avec succes
         System.out.println("TABLE PISTES: " + 1 + " ROW(S) AFFECTED.");
         return 0;
     }
@@ -109,14 +111,15 @@ class PisteRowMapper implements RowMapper<Piste> {
     @Override
     public Piste mapRow(ResultSet rs, int rowNum) throws SQLException {
         List<Point> coordinates = new ArrayList<>();
-        
+        coordinates.add(new Point(rs.getDouble("lat1"), rs.getDouble("lng1")));
+        coordinates.add(new Point(rs.getDouble("lat2"), rs.getDouble("lng2")));
         return new Piste(
                 rs.getInt("id"),
                 rs.getInt("type_voie1"),
-                rs.getInt("station_id"),
-                rs.getInt("station_state"),
-                rs.getInt("station_is_blocked"),
-                rs.getString("station_under_maintenance"),
+                rs.getInt("type_voie2"),
+                rs.getInt("longueur"),
+                rs.getInt("nbr_voie"),
+                rs.getString("nom_arr_ville"),
                 coordinates
         );
     }

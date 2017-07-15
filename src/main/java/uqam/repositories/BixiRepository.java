@@ -25,14 +25,16 @@ public class BixiRepository {
             + "   , station_state"
             + "   , station_is_blocked"
             + "   , station_under_maintenance"
+            + "   , station_out_of_order"
             + "   , millis_last_update"
             + "   , millis_last_server_communication"
             + "   , bk"
             + "   , bl"
-            + "   , coordinates"
+            + "   , ST_X(coordinates::geometry) AS lat"
+            + "   , ST_Y(coordinates::geometry) AS lng"
             + "   , available_terminals"
             + "   , unavailable_terminals"
-            + "   , available_terminals"
+            + "   , available_bikes"
             + "   , unavailable_bikes"
             + " from"
             + "   bixies";
@@ -49,14 +51,16 @@ public class BixiRepository {
             + "   , station_state"
             + "   , station_is_blocked"
             + "   , station_under_maintenance"
+            + "   , station_out_of_order"
             + "   , millis_last_update"
             + "   , millis_last_server_communication"
             + "   , bk"
             + "   , bl"
-            + "   , coordinates"
+            + "   , ST_X(coordinates::geometry) AS lat"
+            + "   , ST_Y(coordinates::geometry) AS lng"
             + "   , available_terminals"
             + "   , unavailable_terminals"
-            + "   , available_terminals"
+            + "   , available_bikes"
             + "   , unavailable_bikes"
             + " from"
             + "   bixies"
@@ -75,14 +79,16 @@ public class BixiRepository {
             + "   , station_state"
             + "   , station_is_blocked"
             + "   , station_under_maintenance"
+            + "   , station_out_of_order"
             + "   , millis_last_update"
             + "   , millis_last_server_communication"
             + "   , bk"
             + "   , bl"
-            + "   , coordinates"
+            + "   , ST_X(coordinates::geometry) AS lat"
+            + "   , ST_Y(coordinates::geometry) AS lng"
             + "   , available_terminals"
             + "   , unavailable_terminals"
-            + "   , available_terminals"
+            + "   , available_bikes"
             + "   , unavailable_bikes"
             + " from"
             + "     bixies"
@@ -154,7 +160,8 @@ public class BixiRepository {
 class BixiRowMapper implements RowMapper<Bixi> {
 
     @Override
-    public Bixi mapRow(ResultSet rs, int rowNum) throws SQLException {
+    public Bixi mapRow(ResultSet rs, int rowNum) throws SQLException {        
+        
         return new Bixi(
                 rs.getInt("id"),
                 rs.getString("station_name"),
@@ -167,8 +174,8 @@ class BixiRowMapper implements RowMapper<Bixi> {
                 rs.getLong("millis_last_server_communication"),
                 rs.getBoolean("bk"),
                 rs.getBoolean("bl"),
-                rs.getDouble("coordinates"),
-                rs.getDouble("coordinates"),
+                rs.getDouble("lat"),
+                rs.getDouble("lng"),
                 rs.getInt("available_terminals"),
                 rs.getInt("unavailable_terminals"),
                 rs.getInt("available_bikes"),

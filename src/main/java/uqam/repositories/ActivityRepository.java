@@ -18,64 +18,52 @@ public class ActivityRepository {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private static final String FIND_ALL_STMT
+    private static final String FIND_ACTIVITY_ALL_STMT
             = " select"
             + "     activities.id"
             + "   , name"
             + "   , description"
             + "   , district"
             + "   , venue_name"
-            + "   , coordinates"
-            + "   , event_date"
+            + "   , ST_X(coordinates::geometry) AS lat"
+            + "   , ST_Y(coordinates::geometry) AS lng"
             + " from"
-            + "   activities"
-            + " inner join"
-            + "   activities_date"
-            + " on"
-            + "   activities.id = activities_date.event_id";
+            + "   activities";
 
     public List<Activity> findAll() {
-        return jdbcTemplate.query(FIND_ALL_STMT, new ActivityRowMapper());
+        return jdbcTemplate.query(FIND_ACTIVITY_ALL_STMT, new ActivityRowMapper());
     }
 
-    private static final String FIND_BY_ID_STMT
+    private static final String FIND_ACTIVITY_BY_ID_STMT
             = " select"
             + "     activities.id"
             + "   , name"
             + "   , description"
             + "   , district"
             + "   , venue_name"
-            + "   , coordinates"
-            + "   , event_date"
+            + "   , ST_X(coordinates::geometry) AS lat"
+            + "   , ST_Y(coordinates::geometry) AS lng"
             + " from"
             + "   activities"
-            + " inner join"
-            + "   activities_date"
-            + " on"
-            + "   activities.id = activities_date.event_id"
             + " where"
             + "   activities.id = ?";
 
     public Activity findById(int id) {
-        return jdbcTemplate.queryForObject(FIND_BY_ID_STMT, new Object[]{id}, new ActivityRowMapper());
+        return jdbcTemplate.queryForObject(FIND_ACTIVITY_BY_ID_STMT, new Object[]{id}, new ActivityRowMapper());
     }
 
-    private static final String FIND_BY_NAME_STMT
+    private static final String FIND_ACTIVITY_BY_NAME_STMT
             = " select"
             + "     activities.id"
             + "   , ts_headline(name, q, 'HighlightAll = true') as name"
             + "   , description"
             + "   , district"
             + "   , venue_name"
-            + "   , coordinates"
-            + "   , event_date"
+            + "   , ST_X(coordinates::geometry) AS lat"
+            + "   , ST_Y(coordinates::geometry) AS lng"
             + " from"
             + "     activities"
             + "   , to_tsquery(?) as q"
-            + " inner join"
-            + "   activities_date"
-            + " on"
-            + "   activities.id = activities_date.event_id"
             + " where"
             + "   name @@ q"
             + " order by"
@@ -83,8 +71,22 @@ public class ActivityRepository {
 
     public List<Activity> findByName(String... tsterms) {
         String tsquery = Arrays.stream(tsterms).collect(Collectors.joining(" & "));
-        return jdbcTemplate.query(FIND_BY_NAME_STMT, new Object[]{tsquery}, new ActivityRowMapper());
+        return jdbcTemplate.query(FIND_ACTIVITY_BY_NAME_STMT, new Object[]{tsquery}, new ActivityRowMapper());
     }
+
+    private static final String FIND_ALL_DATES_STMT
+            = " select"
+            + "     id"
+            + "   , event_date"
+            + "   , event_id"
+            + " from"
+            + "   activities_date"
+            + " where"
+            + "   event_id = ?";
+    
+    public List<String> findAllDatesById(int id) {
+        return jdbcTemplate.query(FIND_ALL_DATES_STMT, new Object[]{id}, new ActivityDatesRowMapper());
+    }  
 
     private static final String INSERT_STMT
             = " INSERT INTO activities (id, name, description, district, venue_name, coordinates)"
@@ -95,8 +97,8 @@ public class ActivityRepository {
     private static final String INSERT_STMT_DATE
             = " INSERT INTO activities_date (event_date, event_id)"
             + " VALUES (?, ?)"
-            + " on conflict (event_date, event_id) do nothing"
-           // + " on conflict do nothing"
+            //+ " on conflict (event_date, event_id) do nothing"
+            + " on conflict do nothing"
             ;
 
     /**
@@ -173,15 +175,26 @@ class ActivityRowMapper implements RowMapper<Activity> {
 
     @Override
     public Activity mapRow(ResultSet rs, int rowNum) throws SQLException {
+        ActivityRepository temp = new ActivityRepository();
+        List<String> dates = temp.findAllDatesById(rs.getInt("id"));
+        
         return new Activity(
-                rs.getInt("activity.id"), 
+                rs.getInt("id"), 
                 rs.getString("name"), 
                 rs.getString("description"), 
                 rs.getString("district"), 
-                (ArrayList<String>) rs.getArray("event_date"), 
+                dates, 
                 new Lieu( rs.getString("venue_name"),
-                          rs.getDouble("coordinates"),
-                          rs.getDouble("coordinates") )
+                          rs.getDouble("lat"),
+                          rs.getDouble("lng") )
         );
+    }
+}
+
+class ActivityDatesRowMapper implements RowMapper<String> {
+
+    @Override
+    public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+        return rs.getString("event_date");
     }
 }
