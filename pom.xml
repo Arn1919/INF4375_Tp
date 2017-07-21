@@ -53,7 +53,12 @@
             <artifactId>json-schema-validator</artifactId>
             <version>2.2.8</version>
         </dependency>
-        
+        <dependency>
+            <groupId>uqam</groupId>
+            <artifactId>MTL375</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
     
 </project>

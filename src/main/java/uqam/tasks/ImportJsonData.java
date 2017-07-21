@@ -1,13 +1,8 @@
 package uqam.tasks;
 
-import uqam.repositories.BixiRepository;
-import uqam.repositories.ActivityRepository;
-import uqam.resources.Lieu;
-import uqam.resources.Activity;
-import uqam.resources.Bixi;
-import uqam.repositories.PisteRepository;
-import uqam.resources.Piste;
-import uqam.resources.Point;
+import uqam.errors.JsonSchemaException;
+import uqam.repositories.*;
+import uqam.resources.*;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,6 +11,8 @@ import java.io.*;
 import java.net.URL;
 
 import javax.annotation.PostConstruct;
+import javax.xml.bind.DatatypeConverter;
+import javax.xml.bind.DatatypeConverterInterface;
 
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.*;
@@ -36,15 +33,29 @@ import com.github.fge.jsonschema.examples.Utils;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.fge.jsonschema.main.JsonValidator;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import uqam.resources.Ligne;
 
 @Service
 public class ImportJsonData {
 
+    // Coordonnees par defaut : Pavillon PK UQAM
+    private static final double DEFAULT_LAT = 45.50894093;
+    private static final double DEFAULT_LNG = -73.56863737;
+    private static final int DEFAULT_RADIUS = 5000;
+    // Acces local - Fichiers JSON
     private static final String ACTIVITY_JSON_FILE_PATH = "src/main/resources/programmation-parcs.json";
     private static final String PISTE_JSON_FILE_PATH = "src/main/resources/reseaucyclable2017juin2017.geojson";
+    // Acces Web via URL
     private static final String BIXI_URL = "https://secure.bixi.com/data/stations.json";
     private static final String PISTE_URL = "http://donnees.ville.montreal.qc.ca/dataset/5ea29f40-1b5b-4f34-85b3-7c67088ff536/resource/0dc6612a-be66-406b-b2d9-59c9e1c65ebf/download/reseaucyclable2017juin2017.geojson";
-
+    // Acces local - Fichiers JSON Schema
     private static final String ACTIVITY_JSON_SCHEMA_PATH = "src/main/resources/json_schema/Activity_Schema.json";
     private static final String BIXI_JSON_SCHEMA_PATH = "src/main/resources/json_schema/Bixi_Schema.json";
     private static final String PISTE_JSON_SCHEMA_PATH = "src/main/resources/json_schema/Pistes_Cyclables_Schema.json";
@@ -61,52 +72,72 @@ public class ImportJsonData {
      * insere dans le repositoire
      *
      */
-    @PostConstruct
+    //@PostConstruct
     public void parseActivities() {
 
+        // Validation du json par le schema
         try (FileReader reader = new FileReader(ACTIVITY_JSON_FILE_PATH)) {
-            
-            Activity test = activityRepository.findById(279);
-            List<Activity> testList = activityRepository.findAll();
-            // Parser du JsonFile
-            JSONParser parser = new JSONParser();
-            Object obj = parser.parse(reader);
-            // Array of JsonObject , JsonObject activity and JsonObject Lieu
-            JSONArray myArray = (JSONArray) obj;
-            JSONObject myObject;
-            JSONObject myObjectLieu;
-            Activity activity;
+            // Valide le json selon JsonSchema
+            ProcessingReport validationSchema = jsonFileLocalIsValid(ACTIVITY_JSON_FILE_PATH, ACTIVITY_JSON_SCHEMA_PATH);
+            if (validationSchema.isSuccess()) {
 
-            // Boucle a travers tableau d objet json, cree activite et insere dans repertoire
-            for (int i = 0; i < myArray.size(); i++) {
-                myObject = (JSONObject) myArray.get(i);
-                myObjectLieu = (JSONObject) myObject.get("lieu");
-                if (myObjectLieu.containsKey("lat") && myObjectLieu.containsKey("lng")) {
-                    activity = new Activity(Integer.parseInt((String) myObject.get("id")),
-                            (String) myObject.get("nom"),
-                            (String) myObject.get("description"),
-                            (String) myObject.get("arrondissement"),
-                            (ArrayList<String>) myObject.get("dates"),
-                            new Lieu((String) myObjectLieu.get("nom"),
-                                    (double) myObjectLieu.get("lat"),
-                                    (double) myObjectLieu.get("lng"))
-                    );
-                } else {
-                    activity = new Activity(Integer.parseInt((String) myObject.get("id")),
-                            (String) myObject.get("nom"),
-                            (String) myObject.get("description"),
-                            (String) myObject.get("arrondissement"),
-                            (ArrayList<String>) myObject.get("dates"),
-                            new Lieu((String) myObjectLieu.get("nom"))
-                    );
+                JSONParser parser = new JSONParser();
+                Object obj = parser.parse(reader);
+                JSONArray myArray = (JSONArray) obj;
+                JSONObject myObject;
+                JSONObject myObjectLieu;
+                ArrayList<String> arrayDatesString;
+                List<Date> listDates;
+                Activity activity;
+
+                // Boucle a travers tableau d objet json, cree activite et insere dans repertoire
+                for (int i = 0; i < myArray.size(); i++) {
+                    myObject = (JSONObject) myArray.get(i);
+                    myObjectLieu = (JSONObject) myObject.get("lieu");
+                    arrayDatesString = (ArrayList<String>) myObject.get("dates");
+                    listDates = new ArrayList<>();
+                    // Initialise la liste de Dates
+                    for (String s : arrayDatesString) {
+                        Calendar calendar = javax.xml.bind.DatatypeConverter.parseDateTime(s);
+                        listDates.add(new Date(calendar.getTimeInMillis()));
+                    }
+                    // Construit une activite avec ou sans coordonnees
+                    if (myObjectLieu.containsKey("lat") && myObjectLieu.containsKey("lng")) {
+                        activity = new Activity(Integer.parseInt((String) myObject.get("id")),
+                                (String) myObject.get("nom"),
+                                (String) myObject.get("description"),
+                                (String) myObject.get("arrondissement"),
+                                listDates,
+                                new Lieu((String) myObjectLieu.get("nom"),
+                                        (double) myObjectLieu.get("lat"),
+                                        (double) myObjectLieu.get("lng")
+                                )
+                        );
+                    } else { // N'a pas de coordonnees
+                        activity = new Activity(Integer.parseInt((String) myObject.get("id")),
+                                (String) myObject.get("nom"),
+                                (String) myObject.get("description"),
+                                (String) myObject.get("arrondissement"),
+                                listDates,
+                                new Lieu((String) myObjectLieu.get("nom"),
+                                        DEFAULT_LAT,
+                                        DEFAULT_LNG
+                                )
+                        );
+                    }
+                    activityRepository.insert(activity);
                 }
-                activityRepository.insert(activity);
+                reader.close();
+            } else {
+                reader.close();
+                throw new JsonSchemaException(validationSchema.toString());
             }
-
-            reader.close();
 
         } catch (IOException e) {
             System.out.println("FILE NOT FOUND EXCEPTION ERROR: Activity Json or JsonSchema file not found.");
+            System.out.println(e);
+        } catch (JsonSchemaException e) {
+            System.out.println("EXCEPTION ERROR: ImportJsonData.parseActivities() - Le format Json ne respecte pas le schema");
             System.out.println(e);
         } catch (ParseException | NumberFormatException e) {
             System.out.println("EXCEPTION ERROR: ImportJsonData.parseActivities() - ParseException or NumberFormatException");
@@ -123,24 +154,33 @@ public class ImportJsonData {
      * repositoire
      *
      */
-    //@Scheduled(cron = "0 */10 * * * *") // à toutes les 2 secondes.
+    //@Scheduled(cron = "0 */10 * * * ?") // à toutes les 2 secondes.
     //@PostConstruct
     public void parseBixies() {
         try {
-            RandomStation station = new RestTemplate().getForObject(BIXI_URL, RandomStation.class);
-            station.randomBixiList.stream()
-                    .map(this::asBixi)
-                    .forEach((bixi) -> {
-                        try {
-                            bixiRepository.insert(bixi);
-                        } catch (Exception ex) {
-                            Logger.getLogger(ImportJsonData.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    });
+            // Valide le json selon JsonSchema
+            ProcessingReport validationSchema = jsonFileWebIsValid(new URL(BIXI_URL), BIXI_JSON_SCHEMA_PATH);
+            if (validationSchema.isSuccess()) {
+                RandomStation station = new RestTemplate().getForObject(BIXI_URL, RandomStation.class);
+                station.randomBixiList.stream()
+                        .map(this::asBixi)
+                        .forEach((bixi) -> {
+                            try {
+                                bixiRepository.insert(bixi);
+                            } catch (Exception ex) {
+                                Logger.getLogger(ImportJsonData.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        });
+            } else {
+                throw new JsonSchemaException(validationSchema.toString());
+            }
         } catch (ResourceAccessException e) {
-            System.out.println("EXCEPTION ERROR: Error when accessing Bixi json URL");
+            System.out.println("EXCEPTION ERROR: ImportJsonData.parseBixies() - Error when accessing Bixi json URL");
             System.out.println(e);
-        } catch (java.lang.Exception e) {
+        } catch (JsonSchemaException e) {
+            System.out.println("EXCEPTION ERROR: ImportJsonData.parseBixies() - Le format Json ne respecte pas le schema");
+            System.out.println(e);
+        } catch (IOException | ProcessingException | RestClientException e) {
             System.out.println("EXCEPTION ERROR: ImportJsonData.parseBixies() - java.lang.Exception");
             System.out.println(e);
         }
@@ -152,11 +192,22 @@ public class ImportJsonData {
      * le repositoire
      *
      */
-    //@Scheduled(cron = "0 0 0 0 */6 *")
+    //@Scheduled(cron = "0 0 0 0 */6 ?")
     //@PostConstruct
     public void parsePistes() {
+        // Telecharge localement le fichier a l'URL specifier
+        try {
+            telechargerFichierPiste(PISTE_URL, PISTE_JSON_FILE_PATH);
+        } catch (IOException e) {
+            System.out.println("FILE NOT FOUND EXCEPTION ERROR: Piste Json or JsonSchema file not found.");
+            System.out.println(e);
+        }
+
         try (FileReader reader = new FileReader(PISTE_JSON_FILE_PATH)) {
 
+            // Valide le json selon JsonSchema
+            //            ProcessingReport validationSchema = jsonFileLocalIsValid(PISTE_JSON_FILE_PATH, PISTE_JSON_SCHEMA_PATH);
+            //            if (validationSchema.isSuccess()) {
             // Parser du JsonFile
             JSONParser parser = new JSONParser();
             JSONObject myObject = (JSONObject) parser.parse(reader);
@@ -165,9 +216,7 @@ public class ImportJsonData {
             JSONObject geometry;
             JSONArray myArray = (JSONArray) myObject.get("features");
             JSONArray coordinatesFirstArray;
-            JSONArray coordinatesSecondArray;
-            JSONArray coordinatesFirstPoint;
-            JSONArray coordinatesSecondPoint;
+            List<Ligne> listeLignes;
             List<Point> listePoints;
             Piste piste;
 
@@ -177,32 +226,43 @@ public class ImportJsonData {
                 properties = (JSONObject) feature.get("properties");
                 geometry = (JSONObject) feature.get("geometry");
                 coordinatesFirstArray = (JSONArray) geometry.get("coordinates");
-                coordinatesSecondArray = (JSONArray) coordinatesFirstArray.get(0);
-                coordinatesFirstPoint = (JSONArray) coordinatesSecondArray.get(0);
-                coordinatesSecondPoint = (JSONArray) coordinatesSecondArray.get(1);
+                listeLignes = new ArrayList();
                 listePoints = new ArrayList();
-                listePoints.add(new Point(((Double)coordinatesFirstPoint.get(0)).doubleValue(), (Double) coordinatesFirstPoint.get(1)));
-                listePoints.add(new Point((Double) coordinatesSecondPoint.get(0), (Double) coordinatesSecondPoint.get(1)));                
-                
-                piste = new Piste((int)(double)properties.get("ID"),
-                        (int)(double) properties.get("TYPE_VOIE"),
-                        (int)(double) properties.get("TYPE_VOIE2"),
-                        (int)(double) properties.get("LONGUEUR"),
-                        (int)(double) properties.get("NBR_VOIE"),
+                for (Object ligne : coordinatesFirstArray) {
+                    JSONArray testTemp = (JSONArray) ligne;
+                    String temp = (String) testTemp.get(0).toString();
+                    for (Object point : (JSONArray) ligne) {
+                        //                     listePoints.add(new Point((Double)temp.get(0), (Double)temp.get(1)));
+                    }
+                    listeLignes.add(new Ligne(listePoints));
+                }
+
+                piste = new Piste((int) (double) properties.get("ID"),
+                        (int) (double) properties.get("TYPE_VOIE"),
+                        (int) (double) properties.get("TYPE_VOIE2"),
+                        (int) (double) properties.get("LONGUEUR"),
+                        (int) (double) properties.get("NBR_VOIE"),
                         (String) properties.get("NOM_ARR_VI"),
-                        listePoints
+                        listeLignes
                 );
 
                 pisteRepository.insert(piste);
-            }
 
+            }
             reader.close();
+//            } else {
+//                reader.close();
+//                throw new JsonSchemaException(validationSchema.toString());
+//            }
 
         } catch (IOException e) {
             System.out.println("FILE NOT FOUND EXCEPTION ERROR: Piste Json or JsonSchema file not found.");
             System.out.println(e);
         } catch (ParseException | NumberFormatException e) {
             System.out.println("EXCEPTION ERROR: ImportJsonData.parsePistes() - ParseException or NumberFormatException");
+            System.out.println(e);
+        } catch (JsonSchemaException e) {
+            System.out.println("EXCEPTION ERROR: ImportJsonData.parsePistes() - Le format Json ne respecte pas le schema");
             System.out.println(e);
         } catch (java.lang.Exception e) {
             System.out.println("EXCEPTION ERROR: ImportJsonData.parsePistes() - java.lang.Exception");
@@ -240,25 +300,59 @@ public class ImportJsonData {
     }
 
     /**
-     * Retourne si le fichier json est valide selon le schema
+     * Retourne le rapport du fichier json a l'URL si valide selon le schema
+     * local
      *
-     * @return boolean
+     * @return ProcessingReport
      */
-    @SuppressWarnings("ConvertToTryWithResources")
-    private boolean jsonFileIsValid(final String jsonFilePath, final String jsonSchemaPath) throws IOException, ProcessingException {
+    private ProcessingReport jsonFileWebIsValid(final URL jsonFilePath, final String jsonSchemaPath) throws IOException, ProcessingException {
+
+        FileReader schemaReader = new FileReader(jsonSchemaPath);
+        ObjectMapper mapperJson = new ObjectMapper();
+        ObjectMapper mapperSchema = new ObjectMapper();
+        final JsonNode jsonNode = mapperJson.readTree(jsonFilePath);
+        final JsonNode jsonSchemaNode = mapperSchema.readTree(schemaReader);
+        final JsonSchemaFactory factory = JsonSchemaFactory.byDefault();
+        final JsonSchema schema = factory.getJsonSchema(jsonSchemaNode);
+        ProcessingReport report = schema.validate(jsonNode);
+        schemaReader.close();
+        return report;
+    }
+
+    /**
+     * Retourne le rapport du fichier stocke localement json est valide selon le
+     * schema
+     *
+     * @return ProcessingReport
+     */
+    private ProcessingReport jsonFileLocalIsValid(final String jsonFilePath, final String jsonSchemaPath) throws IOException, ProcessingException {
 
         FileReader jsonReader = new FileReader(jsonFilePath);
         FileReader schemaReader = new FileReader(jsonSchemaPath);
         ObjectMapper mapperJson = new ObjectMapper();
         ObjectMapper mapperSchema = new ObjectMapper();
-        final JsonNode activityJson = mapperJson.readTree(jsonReader);
-        final JsonNode activityJsonSchema = mapperSchema.readTree(schemaReader);
+        final JsonNode jsonNode = mapperJson.readTree(jsonReader);
+        final JsonNode jsonSchemaNode = mapperSchema.readTree(schemaReader);
         final JsonSchemaFactory factory = JsonSchemaFactory.byDefault();
-        final JsonSchema schema = factory.getJsonSchema(activityJsonSchema);
-        ProcessingReport report = schema.validate(activityJson);
+        final JsonSchema schema = factory.getJsonSchema(jsonSchemaNode);
+        ProcessingReport report = schema.validate(jsonNode);
         jsonReader.close();
         schemaReader.close();
-        return report.isSuccess();
+        return report;
+    }
+
+    /**
+     * Telecharge le fichier localement au cheminement specifie - Si le fichier
+     * existe deja, il efface le fichier
+     *
+     * @param url
+     * @throws IOException
+     */
+    private void telechargerFichierPiste(String url, String pathLocal) throws IOException {
+        Path path = FileSystems.getDefault().getPath(pathLocal);
+        Files.deleteIfExists(path);
+        InputStream in = new URL(url).openStream();
+        Files.copy(in, Paths.get(pathLocal));
     }
 
 }
@@ -315,4 +409,3 @@ class RandomBixi {
     @JsonProperty("bx")
     int unavailableBikes;
 }
-

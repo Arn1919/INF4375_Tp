@@ -3,13 +3,12 @@ package uqam.repositories;
 import uqam.resources.Bixi;
 import java.util.*;
 import java.util.stream.*;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.PreparedStatement;
 
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.jdbc.core.*;
 import org.springframework.stereotype.*;
+import uqam.tasks.BixiRowMapper;
 
 @Component
 public class BixiRepository {
@@ -41,6 +40,10 @@ public class BixiRepository {
 
     public List<Bixi> findAll() {
         return jdbcTemplate.query(FIND_ALL_STMT, new BixiRowMapper());
+    }
+    
+    public List<Bixi> findByParams(String paramsStmt){
+        return jdbcTemplate.query(FIND_ALL_STMT + paramsStmt, new BixiRowMapper());
     }
 
     private static final String FIND_BY_ID_STMT
@@ -102,7 +105,35 @@ public class BixiRepository {
         String tsquery = Arrays.stream(tsterms).collect(Collectors.joining(" & "));
         return jdbcTemplate.query(FIND_BY_STATION_NAME_STMT, new Object[]{tsquery}, new BixiRowMapper());
     }
-
+    
+    private static final String FIND_BY_RADIUS_STMT
+            = " select"
+            + "     id"
+            + "   , station_name"
+            + "   , station_id"
+            + "   , station_state"
+            + "   , station_is_blocked"
+            + "   , station_under_maintenance"
+            + "   , station_out_of_order"
+            + "   , millis_last_update"
+            + "   , millis_last_server_communication"
+            + "   , bk"
+            + "   , bl"
+            + "   , ST_X(coordinates::geometry) AS lat"
+            + "   , ST_Y(coordinates::geometry) AS lng"
+            + "   , available_terminals"
+            + "   , unavailable_terminals"
+            + "   , available_bikes"
+            + "   , unavailable_bikes"
+            + " from"
+            + "     bixies"
+            + " where"
+            + "     ST_DWithin(coordinates, ST_MakePoint(?, ?) , ?)";
+    
+    public List<Bixi> findByRadius() {
+        return jdbcTemplate.query(FIND_BY_RADIUS_STMT, new BixiRowMapper());
+    }
+    
     private static final String INSERT_STMT
             = " INSERT INTO bixies"
             + " (id, "
@@ -155,31 +186,4 @@ public class BixiRepository {
         });
     }
 
-}
-
-class BixiRowMapper implements RowMapper<Bixi> {
-
-    @Override
-    public Bixi mapRow(ResultSet rs, int rowNum) throws SQLException {        
-        
-        return new Bixi(
-                rs.getInt("id"),
-                rs.getString("station_name"),
-                rs.getString("station_id"),
-                rs.getInt("station_state"),
-                rs.getBoolean("station_is_blocked"),
-                rs.getBoolean("station_under_maintenance"),
-                rs.getBoolean("station_out_of_order"),
-                rs.getLong("millis_last_update"),
-                rs.getLong("millis_last_server_communication"),
-                rs.getBoolean("bk"),
-                rs.getBoolean("bl"),
-                rs.getDouble("lat"),
-                rs.getDouble("lng"),
-                rs.getInt("available_terminals"),
-                rs.getInt("unavailable_terminals"),
-                rs.getInt("available_bikes"),
-                rs.getInt("unavailable_bikes")
-        );
-    }
 }

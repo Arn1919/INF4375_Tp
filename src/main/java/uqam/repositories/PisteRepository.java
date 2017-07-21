@@ -1,6 +1,7 @@
 package uqam.repositories;
 
 import uqam.resources.Piste;
+import uqam.tasks.PisteRowMapper;
 import java.util.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,6 +10,7 @@ import java.sql.PreparedStatement;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.jdbc.core.*;
 import org.springframework.stereotype.*;
+import uqam.resources.Ligne;
 import uqam.resources.Point;
 
 @Component
@@ -36,6 +38,22 @@ public class PisteRepository {
         return jdbcTemplate.query(FIND_ALL_STMT, new PisteRowMapper());
     }
 
+    private static final String FIND_BY_PARAMS_STMT
+            = " SELECT"
+            + "     id"
+            + "   , type_voie1"
+            + "   , type_voie2"
+            + "   , longueur"
+            + "   , nbr_voie"
+            + "   , nom_arr_ville"
+            // SOMETHING ABOUT LINESTRING
+            + " FROM"
+            + "     pistes";
+
+    public List<Piste> findByParams(String paramsStmt) {
+        return jdbcTemplate.query(FIND_BY_PARAMS_STMT + paramsStmt, new PisteRowMapper());
+    }
+
     private static final String FIND_BY_ID_STMT
             = " select"
             + "     id"
@@ -54,15 +72,15 @@ public class PisteRepository {
             + "   id = ?";
 
     public Piste findById(int id) {
-        try{
+        try {
             Piste test = jdbcTemplate.queryForObject(FIND_BY_ID_STMT, new Object[]{id}, new PisteRowMapper());
-        }catch(Exception e){
+        } catch (Exception e) {
             System.out.println(e);
         }
         return jdbcTemplate.queryForObject(FIND_BY_ID_STMT, new Object[]{id}, new PisteRowMapper());
     }
 
-    private static final String INSERT_STMT
+    private static final String INSERT_PISTES_STMT
             = " INSERT INTO pistes"
             + " ("
             + " id, "
@@ -71,56 +89,58 @@ public class PisteRepository {
             + " longueur, "
             + " nbr_voie, "
             + " nom_arr_ville, "
-            + " coordinates1,"
-            + " coordinates2"
             + " ) "
-            + " VALUES (?, ?, ?, ?, ?, ?, "
-            + " ST_GeographyFromText('SRID=4326;POINT(' || ? || ' ' || ? || ')'), "
-            + " ST_GeographyFromText('SRID=4326;POINT(' || ? || ' ' || ? || ')') "
-            + " )"
+            + " VALUES (?, ?, ?, ?, ?, ?) "
             + " on conflict do nothing";
 
     public int insert(Piste piste) throws Exception {
         int numRowsPis = insertPiste(piste);
         // Message: Insertion table pistes avec succes
         System.out.println("TABLE PISTES: " + 1 + " ROW(S) AFFECTED.");
+        for (Ligne ligne : piste.getLignes()) {
+            int numRowsLig = insertLigne(piste, ligne.getPoints());
+        }
         return 0;
     }
 
     public int insertPiste(Piste piste) throws Exception {
         return jdbcTemplate.update(conn -> {
-            PreparedStatement ps = conn.prepareStatement(INSERT_STMT);
+            PreparedStatement ps = conn.prepareStatement(INSERT_PISTES_STMT);
             ps.setInt(1, piste.getId());
             ps.setInt(2, piste.getTypeVoie1());
             ps.setInt(3, piste.getTypeVoie2());
             ps.setInt(4, piste.getLongueur());
             ps.setInt(5, piste.getNbreVoie());
-            ps.setString(6, piste.getNomArrVille());
-            ps.setDouble(7, piste.getCoordinates().get(0).getLng());
-            ps.setDouble(8, piste.getCoordinates().get(0).getLat());
-            ps.setDouble(9, piste.getCoordinates().get(1).getLng());
-            ps.setDouble(10, piste.getCoordinates().get(1).getLat());
+            ps.setObject(6, piste.getNomArrVille());
+            return ps;
+        });
+    }
+
+    private static final String INSERT_LIGNES_STMT
+            = " INSERT INTO pistes_lignes"
+            + " ("
+            + " piste_id"
+            + " ligne, "
+            + " )"
+            + " VALUES ("
+            + " ?"
+            + " , LINESTRING("
+            + "   ? ? ?"
+            + "   ,"
+            + "   ? ? ?"
+            + "   )"
+            + " ) "
+            + " on conflict (piste_id, ligne) do nothing";
+
+    public int insertLigne(Piste piste, List<Point> points) throws Exception {
+        return jdbcTemplate.update(conn -> {
+            PreparedStatement ps = conn.prepareStatement(INSERT_LIGNES_STMT);
+            ps.setInt(1, piste.getId());
+            //ps.setInt(2, piste.getTypeVoie1());
             return ps;
         });
     }
 
 }
 
-class PisteRowMapper implements RowMapper<Piste> {
 
-    @Override
-    public Piste mapRow(ResultSet rs, int rowNum) throws SQLException {
-        List<Point> coordinates = new ArrayList<>();
-        coordinates.add(new Point(rs.getDouble("lat1"), rs.getDouble("lng1")));
-        coordinates.add(new Point(rs.getDouble("lat2"), rs.getDouble("lng2")));
-        return new Piste(
-                rs.getInt("id"),
-                rs.getInt("type_voie1"),
-                rs.getInt("type_voie2"),
-                rs.getInt("longueur"),
-                rs.getInt("nbr_voie"),
-                rs.getString("nom_arr_ville"),
-                coordinates
-        );
-    }
-}

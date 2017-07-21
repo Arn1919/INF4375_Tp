@@ -14,21 +14,21 @@ public class Piste {
     private int longueur;
     private int nbrVoie;
     private String nomArrVille;
-    private List<Point> coordinates;
+    private List<Ligne> lignes;
 
 
     public Piste() {
 
     }
     
-    public Piste(int id, int typeVoie1, int typeVoie2, int longueur, int nbrVoie, String nomArrVille, List<Point> coordinates){
+    public Piste(int id, int typeVoie1, int typeVoie2, int longueur, int nbrVoie, String nomArrVille, List<Ligne> lignes){
         this.id = id;
         this.typeVoie1 = typeVoie1;
         this.typeVoie2 = typeVoie2;
         this.longueur = longueur;
         this.nbrVoie = nbrVoie;
         this.nomArrVille = nomArrVille;
-        this.coordinates = coordinates;
+        this.lignes = lignes;
     }
     
     // Getters
@@ -38,6 +38,6 @@ public class Piste {
     public int getLongueur() { return longueur; }
     public int getNbreVoie() { return nbrVoie; }
     public String getNomArrVille() { return nomArrVille; }
-    public List<Point> getCoordinates(){ return coordinates; }
+    public List<Ligne> getLignes(){ return lignes; }
     
 }

@@ -3,19 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package uqam.controllers;
-
-import org.springframework.stereotype.Controller;
-
-
+package uqam.errors;
 
 /**
  *
  * @author arnaud
  */
-@Controller
-public class ApplicationController {
-    
+public class JsonSchemaException extends Exception{
 
+    public JsonSchemaException(String reportMsg) {
+        super(reportMsg);
+    }
     
 }

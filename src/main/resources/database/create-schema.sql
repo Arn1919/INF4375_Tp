@@ -2,6 +2,7 @@
 DROP TABLE IF EXISTS activities_date;
 DROP TABLE IF EXISTS activities;
 DROP TABLE IF EXISTS bixies;
+DROP TABLE IF EXISTS pistes_ligne;
 DROP TABLE IF EXISTS pistes;
 DROP EXTENSION IF EXISTS Postgis;
 
@@ -19,7 +20,8 @@ CREATE TABLE activities (
 CREATE TABLE activities_date (
     id serial primary key,
     event_date timestamp with time zone,
-    event_id int references activities(id)
+    event_id int references activities(id),
+    constraint uq_id_date unique (event_id, event_date)
 );
 
 CREATE TABLE bixies (
@@ -37,7 +39,7 @@ CREATE TABLE bixies (
     coordinates GEOGRAPHY(POINT, 4326),
     available_terminals int,
     unavailable_terminals int,
-    available_bikes int
+    available_bikes int,
     unavailable_bikes int
 );
 
@@ -48,7 +50,6 @@ CREATE TABLE pistes (
     longueur int,
     nbr_voie int,
     nom_arr_ville text,
-    coordinates1 GEOGRAPHY(POINT, 4326),
-    coordinates2 GEOGRAPHY(POINT, 4326)
+    ligne GEOGRAPHY(MULTILINESTRING)
 );
 
