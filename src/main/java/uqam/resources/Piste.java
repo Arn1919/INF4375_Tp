@@ -14,21 +14,21 @@ public class Piste {
     private int longueur;
     private int nbrVoie;
     private String nomArrVille;
-    private List<Ligne> lignes;
+    private String multiLinestring;
 
-
+    // Constructeurs
     public Piste() {
 
     }
     
-    public Piste(int id, int typeVoie1, int typeVoie2, int longueur, int nbrVoie, String nomArrVille, List<Ligne> lignes){
+    public Piste(int id, int typeVoie1, int typeVoie2, int longueur, int nbrVoie, String nomArrVille, String multiLinestring){
         this.id = id;
         this.typeVoie1 = typeVoie1;
         this.typeVoie2 = typeVoie2;
         this.longueur = longueur;
         this.nbrVoie = nbrVoie;
         this.nomArrVille = nomArrVille;
-        this.lignes = lignes;
+        this.multiLinestring = multiLinestring;
     }
     
     // Getters
@@ -38,6 +38,6 @@ public class Piste {
     public int getLongueur() { return longueur; }
     public int getNbreVoie() { return nbrVoie; }
     public String getNomArrVille() { return nomArrVille; }
-    public List<Ligne> getLignes(){ return lignes; }
+    public String getMultiLineString(){ return multiLinestring; }
     
 }

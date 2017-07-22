@@ -8,7 +8,7 @@ import java.sql.PreparedStatement;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.jdbc.core.*;
 import org.springframework.stereotype.*;
-import uqam.tasks.BixiRowMapper;
+import uqam.rowMapper.BixiRowMapper;
 
 @Component
 public class BixiRepository {

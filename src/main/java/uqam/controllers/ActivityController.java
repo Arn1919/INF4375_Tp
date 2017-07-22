@@ -88,7 +88,11 @@ public class ActivityController {
             if (lng == null) {
                 lng = DEFAULT_LNG;
             }
-            paramsStmt += " ST_DWithin(coordinates, ST_MakePoint(" + lat + ", " + lng + ") , " + rayon + ")";
+            paramsStmt += "ST_Distance(";
+            paramsStmt += "     coordinates, ";
+            paramsStmt += "     ST_MakePoint(" + lat + "," + lng +" )::geography";
+            paramsStmt += ") ";
+            paramsStmt += "<= " + rayon;
 
         } else if ((rayon != null || lat != null || lng != null) && (du != null || au != null)) {
             if (rayon == null) {
@@ -106,7 +110,11 @@ public class ActivityController {
             if (au == null) {
                 au = getTomorrowString();
             }
-            paramsStmt += " ST_DWithin(coordinates, ST_MakePoint(" + lat + ", " + lng + ") , " + rayon + ")";
+            paramsStmt += "ST_Distance(";
+            paramsStmt += "     coordinates, ";
+            paramsStmt += "     ST_MakePoint(" + lat + "," + lng +" )::geography";
+            paramsStmt += ") ";
+            paramsStmt += "<= " + rayon;
             paramsStmt += " and";
             paramsStmt += " event_date >= " + du;
             paramsStmt += " and";

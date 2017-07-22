@@ -19,6 +19,7 @@ public class Activity {
   private List<Date> dates;
   private Lieu lieu;
 
+  // Constructeurs
   public Activity(){
 
   }
@@ -32,13 +33,14 @@ public class Activity {
     this.lieu = lieu;
   }
 
+   // Getters
   @JsonProperty public int getId() { return id; }
   @JsonProperty public String getNom() { return nom; }
   @JsonProperty public String getDescription() { return description; }
   @JsonProperty public String getArrondissement() { return arrondissement; }
   @JsonProperty public List<Date> getDates() { return dates; }
   @JsonProperty public Lieu getLieu() { return lieu;}
-
+  // Setters
   @JsonProperty public void setId(int id){ this.id = id; }
   @JsonProperty public void setNom(String nom) { this.nom = nom; }
   @JsonProperty public void setDescription(String description) { this.description = description; }

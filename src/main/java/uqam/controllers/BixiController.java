@@ -32,7 +32,11 @@ public class BixiController{
         String paramsStmt = " where";
         paramsStmt += " availableBikes >= " + min_bixi_dispo;
         paramsStmt += " and";
-        // RADIUS POINT QUERY
+        paramsStmt += "ST_Distance(";
+        paramsStmt += "     coordinates, ";
+        paramsStmt += "     ST_MakePoint(" + lat + "," + lng +" )::geography";
+        paramsStmt += ") ";
+        paramsStmt += "<= " + rayon;
         
         return bixiRepository.findByParams(paramsStmt);
     }

@@ -10,13 +10,8 @@ import java.util.*;
 import java.io.*;
 import java.net.URL;
 
-import javax.annotation.PostConstruct;
-import javax.xml.bind.DatatypeConverter;
-import javax.xml.bind.DatatypeConverterInterface;
-
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.*;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.client.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -26,21 +21,16 @@ import org.json.simple.parser.ParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.annotation.*;
-import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
-import com.github.fge.jsonschema.examples.Utils;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
-import com.github.fge.jsonschema.main.JsonValidator;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import uqam.resources.Ligne;
+import javax.annotation.PostConstruct;
+import org.springframework.scheduling.annotation.Scheduled;
 
 @Service
 public class ImportJsonData {
@@ -193,7 +183,7 @@ public class ImportJsonData {
      *
      */
     //@Scheduled(cron = "0 0 0 0 */6 ?")
-    //@PostConstruct
+    @PostConstruct
     public void parsePistes() {
         // Telecharge localement le fichier a l'URL specifier
         try {
@@ -202,58 +192,77 @@ public class ImportJsonData {
             System.out.println("FILE NOT FOUND EXCEPTION ERROR: Piste Json or JsonSchema file not found.");
             System.out.println(e);
         }
-
+        // Commence la lecture du fichier JSON format GEOJSON
         try (FileReader reader = new FileReader(PISTE_JSON_FILE_PATH)) {
 
             // Valide le json selon JsonSchema
-            //            ProcessingReport validationSchema = jsonFileLocalIsValid(PISTE_JSON_FILE_PATH, PISTE_JSON_SCHEMA_PATH);
-            //            if (validationSchema.isSuccess()) {
-            // Parser du JsonFile
-            JSONParser parser = new JSONParser();
-            JSONObject myObject = (JSONObject) parser.parse(reader);
-            JSONObject feature;
-            JSONObject properties;
-            JSONObject geometry;
-            JSONArray myArray = (JSONArray) myObject.get("features");
-            JSONArray coordinatesFirstArray;
-            List<Ligne> listeLignes;
-            List<Point> listePoints;
-            Piste piste;
+            ProcessingReport validationSchema = jsonFileLocalIsValid(PISTE_JSON_FILE_PATH, PISTE_JSON_SCHEMA_PATH);
+            if (validationSchema.isSuccess()) {
+                // Parser du JsonFile
+                JSONParser parser = new JSONParser();
+                JSONObject myObject = (JSONObject) parser.parse(reader);
+                JSONObject feature;
+                JSONObject properties;
+                JSONObject geometry;
+                JSONArray features = (JSONArray) myObject.get("features");
+                JSONArray multiLinesStringArray;
+                JSONArray lineStringArray;
+                JSONArray pointArray;
+                Piste piste;
+                String multiLineString = "";
 
-            // Boucle a travers tableau d objet json, cree activite et insere dans repertoire
-            for (int i = 0; i < myArray.size(); i++) {
-                feature = (JSONObject) myArray.get(i);
-                properties = (JSONObject) feature.get("properties");
-                geometry = (JSONObject) feature.get("geometry");
-                coordinatesFirstArray = (JSONArray) geometry.get("coordinates");
-                listeLignes = new ArrayList();
-                listePoints = new ArrayList();
-                for (Object ligne : coordinatesFirstArray) {
-                    JSONArray testTemp = (JSONArray) ligne;
-                    String temp = (String) testTemp.get(0).toString();
-                    for (Object point : (JSONArray) ligne) {
-                        //                     listePoints.add(new Point((Double)temp.get(0), (Double)temp.get(1)));
+                // Boucle a travers tableau d objet json, cree activite et insere dans repertoire
+                for (int i = 0; i < features.size(); i++) {
+                    // Chargement du feature
+                    feature = (JSONObject) features.get(i);
+                    properties = (JSONObject) feature.get("properties");
+                    geometry = (JSONObject) feature.get("geometry");
+                    multiLinesStringArray = (JSONArray) geometry.get("coordinates");
+
+                    // Construction de la string Multilinestring
+                    multiLineString += "MULTILINESTRING(";
+                    for (int j = 0; j < multiLinesStringArray.size(); j++) {
+
+                        multiLineString += "("; // Debut LineString
+                        lineStringArray = (JSONArray) multiLinesStringArray.get(j);
+
+                        for (int k = 0; k < lineStringArray.size(); k++) {
+
+                            pointArray = (JSONArray) lineStringArray.get(k);
+                            multiLineString += (double) pointArray.get(0);
+                            multiLineString += " ";
+                            multiLineString += (double) pointArray.get(1);
+
+                            // N'est pas le dernier point du array ??
+                            if (k != lineStringArray.size() - 1) {
+                                multiLineString += ", ";
+                            }
+                        }
+                        multiLineString += ")"; // Fin LineString
+                        // N'est pas la derniere linestring du array??
+                        if (j != multiLinesStringArray.size() - 1) {
+                            multiLineString += ", ";
+                        }
                     }
-                    listeLignes.add(new Ligne(listePoints));
+                    multiLineString += ")::geography"; // Termine le multilinestring
+
+                    piste = new Piste((int) (double) properties.get("ID"),
+                            (int) (double) properties.get("TYPE_VOIE"),
+                            (int) (double) properties.get("TYPE_VOIE2"),
+                            (int) (double) properties.get("LONGUEUR"),
+                            (int) (double) properties.get("NBR_VOIE"),
+                            (String) properties.get("NOM_ARR_VI"),
+                            multiLineString
+                    );
+
+                    pisteRepository.insert(piste);
+
                 }
-
-                piste = new Piste((int) (double) properties.get("ID"),
-                        (int) (double) properties.get("TYPE_VOIE"),
-                        (int) (double) properties.get("TYPE_VOIE2"),
-                        (int) (double) properties.get("LONGUEUR"),
-                        (int) (double) properties.get("NBR_VOIE"),
-                        (String) properties.get("NOM_ARR_VI"),
-                        listeLignes
-                );
-
-                pisteRepository.insert(piste);
-
+                reader.close();
+            } else {
+                reader.close();
+                throw new JsonSchemaException(validationSchema.toString());
             }
-            reader.close();
-//            } else {
-//                reader.close();
-//                throw new JsonSchemaException(validationSchema.toString());
-//            }
 
         } catch (IOException e) {
             System.out.println("FILE NOT FOUND EXCEPTION ERROR: Piste Json or JsonSchema file not found.");
@@ -352,7 +361,14 @@ public class ImportJsonData {
         Path path = FileSystems.getDefault().getPath(pathLocal);
         Files.deleteIfExists(path);
         InputStream in = new URL(url).openStream();
-        Files.copy(in, Paths.get(pathLocal));
+        try {
+            Files.copy(in, Paths.get(pathLocal));
+            in.close();
+        } catch (IOException e) {
+            in.close();
+            throw new IOException();
+        }
+
     }
 
 }

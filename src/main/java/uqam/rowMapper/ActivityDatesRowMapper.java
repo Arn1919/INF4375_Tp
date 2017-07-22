@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package uqam.tasks;
+package uqam.rowMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,10 +15,11 @@ import org.springframework.jdbc.core.RowMapper;
  *
  * @author arnaud
  */
-public class IntRowMapper implements RowMapper<Integer> {
+public class ActivityDatesRowMapper implements RowMapper<Date> {
 
     @Override
-    public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return rs.getInt("max_id");
+    public Date mapRow(ResultSet rs, int rowNum) throws SQLException {
+        Timestamp temp = rs.getTimestamp("event_date");   
+        return new Date(temp.getTime());
     }
 }

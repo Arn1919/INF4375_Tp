@@ -1,8 +1,8 @@
 package uqam.repositories;
 
 import uqam.resources.Activity;
-import uqam.tasks.ActivityRowMapper;
-import uqam.tasks.ActivityDatesRowMapper;
+import uqam.rowMapper.ActivityRowMapper;
+import uqam.rowMapper.ActivityDatesRowMapper;
 import java.util.*;
 import java.util.stream.*;
 import java.sql.PreparedStatement;
@@ -10,7 +10,7 @@ import java.sql.PreparedStatement;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.jdbc.core.*;
 import org.springframework.stereotype.*;
-import uqam.tasks.IntRowMapper;
+import uqam.rowMapper.IntRowMapper;
 
 @Component
 public class ActivityRepository {

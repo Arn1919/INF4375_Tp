@@ -211,19 +211,33 @@
 //             WHERE
 //                 id = 279;
 //      
+//SELECT
+//        id
+//FROM
+//        activities
+//WHERE
+//       ST_Distance(coordinates, ST_MakePoint(45.50894093, -73.56863737)::geography) <= 5000;
 //
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//SELECT
+//       count(id)
+//FROM
+//        bixies
+//WHERE
+//        available_terminals >= 5
+//   AND
+//       ST_Distance(coordinates, ST_MakePoint(45.50894093, -73.56863737)::geography) <= 5000;
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//

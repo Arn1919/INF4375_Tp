@@ -1,5 +1,5 @@
+uqam/rowMapper/PisteRowMapper.class
 uqam/Application.class
-uqam/tasks/ActivityRowMapper.class
 uqam/repositories/BixiRepository.class
 uqam/errors/Error.class
 uqam/repositories/ActivityRepository.class
@@ -12,13 +12,12 @@ uqam/resources/Activity.class
 uqam/tasks/RandomStation.class
 uqam/errors/ErrorHandler.class
 uqam/tasks/ImportJsonData.class
-uqam/resources/Point.class
-uqam/resources/Ligne.class
+uqam/rowMapper/ActivityDatesRowMapper.class
 uqam/resources/Piste.class
+uqam/rowMapper/BixiRowMapper.class
 uqam/resources/Lieu.class
-uqam/repositories/BixiRowMapper.class
-uqam/repositories/PisteRowMapper.class
+uqam/rowMapper/ActivityRowMapper.class
 uqam/errors/JsonSchemaException.class
+uqam/rowMapper/IntRowMapper.class
 uqam/controllers/BixiController.class
-uqam/tasks/ActivityDatesRowMapper.class
 uqam/resources/Bixi.class

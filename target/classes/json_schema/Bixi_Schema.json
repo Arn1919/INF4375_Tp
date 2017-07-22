@@ -1,6 +1,6 @@
 {
     "type": "object",
-    "required": ["stations", "schemeSuspended", "timestamp", "test"],
+    "required": ["stations", "schemeSuspended", "timestamp"],
     "properties": {
         "stations": {
             "type": "array",

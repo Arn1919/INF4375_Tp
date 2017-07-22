@@ -1,13 +1,18 @@
-\connect mtl375;
+
+-- Connect to DB mtl375
+\connect mtl375
+
+-- Drop existing tables and extension
 DROP TABLE IF EXISTS activities_date;
 DROP TABLE IF EXISTS activities;
 DROP TABLE IF EXISTS bixies;
-DROP TABLE IF EXISTS pistes_ligne;
 DROP TABLE IF EXISTS pistes;
 DROP EXTENSION IF EXISTS Postgis;
 
+-- Create extension Postgis
 CREATE EXTENSION Postgis;
 
+-- Create the tables
 CREATE TABLE activities (
     id int primary key,
     name text,
@@ -50,6 +55,8 @@ CREATE TABLE pistes (
     longueur int,
     nbr_voie int,
     nom_arr_ville text,
-    ligne GEOGRAPHY(MULTILINESTRING)
+    piste GEOGRAPHY(MULTILINESTRING, 4326)
 );
 
+-- Quit database
+\q
