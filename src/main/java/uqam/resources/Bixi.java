@@ -39,8 +39,8 @@ public class Bixi {
             long millisLastServerCommunication,
             boolean bk,
             boolean bl,
-            double lat,
             double lng,
+            double lat,
             int availableTerminals,
             int unavailableTerminals,
             int availableBikes,
@@ -56,8 +56,8 @@ public class Bixi {
         this.millisLastServerCommunication = millisLastServerCommunication;
         this.bk = bk;
         this.bl = bl;
-        this.lat = lat;
         this.lng = lng;
+        this.lat = lat;
         this.availableTerminals = availableTerminals;
         this.unavailableTerminals = unavailableTerminals;
         this.availableBikes = availableBikes;

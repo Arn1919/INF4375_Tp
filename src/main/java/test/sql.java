@@ -229,6 +229,12 @@
 //
 //
 //
+//SELECT
+//    id
+//FROM
+//    pistes
+//WHERE
+//    ST_DWITHIN(ST_TRANSFORM(ST_SetSrid(piste, 2950), 4326)::geography, ST_MakePoint(-73.56863737, 45.50894093), 5000);
 //
 //
 //

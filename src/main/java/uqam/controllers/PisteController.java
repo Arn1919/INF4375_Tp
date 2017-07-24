@@ -25,18 +25,25 @@ public class PisteController {
     // Coordonnees par defaut : Pavillon PK UQAM
     private static final double DEFAULT_LAT = 45.50894093;
     private static final double DEFAULT_LNG = -73.56863737;
-    private static final int DEFAULT_RADIUS = 5000;
+    private static final int DEFAULT_RADIUS = 200;
     
     @Autowired
     PisteRepository pisteRepository;
     
+    /**
+     * HTTP Method : GET avec parametres
+     * 
+     * @param rayon
+     * @param lat
+     * @param lng
+     * @return List<Piste>
+     */
     @RequestMapping(method = RequestMethod.GET)
-    public List<Piste> get(@RequestParam(defaultValue = "5000") Integer rayon, 
-            @RequestParam(defaultValue = "45.50894093") Double lat, @RequestParam(defaultValue = "-73.56863737") Double lng) {
-        String paramsStmt = " where";
-        
-        // WORKING QUERY 
-        paramsStmt += "";
+    public List<Piste> get(@RequestParam(value="rayon", defaultValue = "200") Integer rayon, 
+            @RequestParam(value="lat") Double lat, @RequestParam(value="lng") Double lng) {
+        String paramsStmt = " WHERE";
+        paramsStmt += " ST_DWITHIN(ST_TRANSFORM(ST_SetSrid(piste, 2950), 4326)::geography, ";
+        paramsStmt += " ST_MakePoint(" + lng + "," + lat + "), "+ + rayon +")";
         
         return pisteRepository.findByParams(paramsStmt);
     }

@@ -40,32 +40,26 @@ public class ActivityController {
     @Autowired
     private ActivityRepository activityRepository;
 
+
     /**
      * HTTP Method : GET avec parametres
-     * 
+     *
      * Retourne la liste d'activites correspondant aux parametres
-     * 
-     * Valeurs par defaut:
-     *  -rayon  : DEFAULT_RAYON
-     *  -lat    : DEFAULT_LAT
-     *  -lng    : DEFAULT_LNG
-     *  -du     : Date de la veille
-     *  -au     : Date du lendemain
      *
      * @param rayon
      * @param lat
-     * @param lng
-     * @param du
+     * @param lng 
+    * @param du
      * @param au
      * @return List<Activity>
      */
     @RequestMapping(method = RequestMethod.GET)
-    public List<Activity> get(@RequestParam Integer rayon, @RequestParam Double lat, @RequestParam Double lng,
-            @RequestParam String du, @RequestParam String au) {
+    public List<Activity> get(@RequestParam(value = "rayon") Integer rayon,
+            @RequestParam(value = "lat") Double lat,
+            @RequestParam(value = "lng") Double lng,
+            @RequestParam(value = "du") String du,
+            @RequestParam(value = "au") String au) {
 
-        du = getYesterdayString();
-        
-        
         String paramsStmt = "where ";
 
         if (rayon == null && lat == null && lng == null && (du != null || au != null)) {
@@ -90,7 +84,7 @@ public class ActivityController {
             }
             paramsStmt += "ST_Distance(";
             paramsStmt += "     coordinates, ";
-            paramsStmt += "     ST_MakePoint(" + lat + "," + lng +" )::geography";
+            paramsStmt += "     ST_MakePoint(" + lat + "," + lng + " )::geography";
             paramsStmt += ") ";
             paramsStmt += "<= " + rayon;
 
@@ -112,7 +106,7 @@ public class ActivityController {
             }
             paramsStmt += "ST_Distance(";
             paramsStmt += "     coordinates, ";
-            paramsStmt += "     ST_MakePoint(" + lat + "," + lng +" )::geography";
+            paramsStmt += "     ST_MakePoint(" + lng + "," + lat + " )::geography";
             paramsStmt += ") ";
             paramsStmt += "<= " + rayon;
             paramsStmt += " and";
@@ -123,10 +117,19 @@ public class ActivityController {
 
         return activityRepository.findByParams(paramsStmt);
     }
-    
+
+    /**
+     * HTTP Method : POST
+     * 
+     * Ajoute une Activity a la BD et retourne le id
+     * 
+     * @param activity
+     * @return String
+     */
     @RequestMapping(method = RequestMethod.POST)
     public String post(@RequestBody Activity activity) {
-        int id = -1;
+        System.out.println("HERE PUT CONTROLLER");
+        int id;
         try {
             id = activityRepository.post(activity);
         } catch (Exception ex) {
@@ -135,18 +138,35 @@ public class ActivityController {
         }
         return "Activity id " + id + " - Created Successfully";
     }
-    
-    @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+
+    /**
+     * HTTP Method : PUT
+     * 
+     * Ajoute une Activity au id specifie
+     * 
+     * @param id
+     * @param activity
+     * @return String
+     */
+    @RequestMapping(method = RequestMethod.PUT, value = "/{id}")
     public String put(@PathVariable("id") int id, @RequestBody Activity activity) {
         try {
             activityRepository.put(id, activity);
         } catch (Exception ex) {
             Logger.getLogger(ActivityController.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return "Activity id " + id + " - Updated Successfully" ;
+        return "Activity id " + id + " - Updated Successfully";
     }
-    
-    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+
+    /**
+     * HTTP Method : DELETE
+     * 
+     * Supprime une Activity au id specifie
+     * 
+     * @param id
+     * @return String
+     */
+    @RequestMapping(method = RequestMethod.DELETE, value = "/{id}")
     public String delete(@PathVariable("id") int id) {
         activityRepository.delete(id);
         return "Activity id  " + id + " - Deleted Successfully";
@@ -154,27 +174,27 @@ public class ActivityController {
 
     /**
      * Retourne la date d'hier en String
-     * 
+     *
      * Format date String : 'yyyy-mm-dd'
-     * 
+     *
      * @return String
      */
-    private String getYesterdayString(){
+    private String getYesterdayString() {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DATE, -1);
         Date date = cal.getTime();
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         return dateFormat.format(date);
     }
-    
+
     /**
      * Retourne la date de demain en String
-     * 
+     *
      * Format date String : 'yyyy-mm-dd'
-     * 
+     *
      * @return String
      */
-    private String getTomorrowString(){
+    private String getTomorrowString() {
         return "";
     }
 }

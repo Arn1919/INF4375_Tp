@@ -55,7 +55,7 @@ CREATE TABLE pistes (
     longueur int,
     nbr_voie int,
     nom_arr_ville text,
-    piste GEOGRAPHY(MULTILINESTRING, 4326)
+    piste GEOMETRY(MULTILINESTRING, 2950)
 );
 
 -- Quit database

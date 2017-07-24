@@ -25,7 +25,7 @@ public class PisteRowMapper implements RowMapper<Piste> {
                 rs.getInt("longueur"),
                 rs.getInt("nbr_voie"),
                 rs.getString("nom_arr_ville"),
-                null
+                rs.getString("multistring")
         );
     }
 }

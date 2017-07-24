@@ -4,7 +4,6 @@ import uqam.resources.Activity;
 import uqam.rowMapper.ActivityRowMapper;
 import uqam.rowMapper.ActivityDatesRowMapper;
 import java.util.*;
-import java.util.stream.*;
 import java.sql.PreparedStatement;
 
 import org.springframework.beans.factory.annotation.*;
@@ -75,28 +74,6 @@ public class ActivityRepository {
         return jdbcTemplate.queryForObject(FIND_ACTIVITY_BY_ID_STMT, new Object[]{id}, mapper);
     }
 
-    private static final String FIND_ACTIVITY_BY_NAME_STMT
-            = " select"
-            + "     activities.id"
-            + "   , ts_headline(name, q, 'HighlightAll = true') as name"
-            + "   , description"
-            + "   , district"
-            + "   , venue_name"
-            + "   , ST_X(coordinates::geometry) AS lat"
-            + "   , ST_Y(coordinates::geometry) AS lng"
-            + " from"
-            + "     activities"
-            + "   , to_tsquery(?) as q"
-            + " where"
-            + "   name @@ q"
-            + " order by"
-            + "   ts_rank_cd(to_tsvector(name), q) desc";
-
-    public List<Activity> findByName(String... tsterms) {
-        String tsquery = Arrays.stream(tsterms).collect(Collectors.joining(" & "));
-        return jdbcTemplate.query(FIND_ACTIVITY_BY_NAME_STMT, new Object[]{tsquery}, mapper);
-    }
-
     private static final String FIND_ALL_DATES_BY_ID_STMT
             = " select"
             + "     id"
@@ -109,45 +86,7 @@ public class ActivityRepository {
         String complete_stmt = FIND_ALL_DATES_BY_ID_STMT + " where event_id = " + id;
         return jdbcTemplate.query(complete_stmt, new ActivityDatesRowMapper());
     }
-
-    private static final String FIND_BY_DATE_RANGE
-            = " select"
-            + "     activities.id"
-            + "   , name"
-            + "   , description"
-            + "   , district"
-            + "   , venue_name"
-            + "   , ST_X(coordinates::geometry) AS lat"
-            + "   , ST_Y(coordinates::geometry) AS lng"
-            + "   , event_date"
-            + "   , event_id"
-            + " from"
-            + "     activities"
-            + " inner join"
-            + "     activities_date"
-            + " on"
-            + "     activities.id = activities_date.event_id"
-            + " where"
-            + "     event_date >= ?"
-            + "   and"
-            + "     event_date <= ?";
-
-    public List<Activity> findByDateRange() {
-        return jdbcTemplate.query(FIND_BY_DATE_RANGE, mapper);
-    }
-
-    private static final String FIND_BY_RADIUS_STMT
-            = " select"
-            + "     id"
-            + " "
-            + " from"
-            + "     activities"
-            + " where"
-            + "     ST_DWithin(coordinates, ST_MakePoint(?, ?) , ?)";
     
-    public List<Activity> findByRadius(){
-        return jdbcTemplate.query(FIND_BY_RADIUS_STMT, mapper);
-    }
     
     private static final String DELETE_ACTIVITY_DATE_STMT
             = " DELETE FROM activities_date"
@@ -185,15 +124,16 @@ public class ActivityRepository {
     }
     
     private static final String PUT_ACTIVITY_STMT
-            = " UPDATE activities"
+            = " INSERT INTO activities (id, name, description, district, venue_name, coordinates)"
+            + " VALUES( ?, ?, ?, ?, ?, ST_MakePoint(?, ?))"
+            + " ON CONFLICT (id) DO UPDATE"
             + " SET"
-            + "       name = ?"
-            + "     , description = ?"
-            + "     , district = ?"
-            + "     , venue_name = ?"
-            + "     , coordinates = ST_MakePoint(?, ?)"
-            + " WHERE"
-            + "     id = ?";
+            + "     name = ?,"
+            + "     description = ?,"
+            + "     district = ?,"
+            + "     venue_name = ?,"
+            + "     coordinates = ST_MakePoint(?, ?)";
+    
     /**
      * Valide si l'objet avec le id en parametre existe deja dans la BD
      *  - Si non, il insere l'activite dans la BD a la position id
@@ -203,16 +143,13 @@ public class ActivityRepository {
      * @param activity
      * @throws Exception 
      */
-    public void put(int id, Activity activity) throws Exception{
-        int result = 0;
-        if(this.findById(id) == null){
-            insert(activity);
-        }else{
-            int resultDelete = deleteDate(id);
+    public void put(int id, Activity activity) throws Exception {
+            activity.setId(id);
             int resultUpdate = update(activity);
-            for(int i = 0; i < activity.getDates().size(); i++){
-                int resultInsert = insertDate(activity, i);
-            }
+            int resultDelete = deleteDate(id);
+            int resultInsertDate = 0;
+        for (int i = 0; i < activity.getDates().size(); i++) {
+            resultInsertDate = insertDate(activity, i);
         }
     }
     
@@ -225,13 +162,19 @@ public class ActivityRepository {
     public int update(Activity activity) {
         return jdbcTemplate.update(conn -> {
             PreparedStatement ps = conn.prepareStatement(PUT_ACTIVITY_STMT);
-            ps.setString(1, activity.getNom());
-            ps.setString(2, activity.getDescription());
-            ps.setString(3, activity.getArrondissement());
-            ps.setString(4, activity.getLieu().getNom());
-            ps.setDouble(5, activity.getLieu().getLat());
+            ps.setInt(1, activity.getId());
+            ps.setString(2, activity.getNom());
+            ps.setString(3, activity.getDescription());
+            ps.setString(4, activity.getArrondissement());
+            ps.setString(5, activity.getLieu().getNom());
             ps.setDouble(6, activity.getLieu().getLng());
-            ps.setInt(7, activity.getId());
+            ps.setDouble(7, activity.getLieu().getLat());
+            ps.setString(8, activity.getNom());
+            ps.setString(9, activity.getDescription());
+            ps.setString(10, activity.getArrondissement());
+            ps.setString(11, activity.getLieu().getNom());
+            ps.setDouble(12, activity.getLieu().getLng());
+            ps.setDouble(13, activity.getLieu().getLat());
             return ps;
         });
     }
@@ -288,7 +231,7 @@ public class ActivityRepository {
     }
 
     /**
-     * Insere l'activité dans la BD
+     * Insere l'activite dans la BD
      *
      * @param activity
      * @return PreparedStatement
@@ -301,14 +244,14 @@ public class ActivityRepository {
             ps.setString(3, activity.getDescription());
             ps.setString(4, activity.getArrondissement());
             ps.setString(5, activity.getLieu().getNom());
-            ps.setDouble(6, activity.getLieu().getLat());
-            ps.setDouble(7, activity.getLieu().getLng());
+            ps.setDouble(6, activity.getLieu().getLng());
+            ps.setDouble(7, activity.getLieu().getLat());
             return ps;
         });
     }
 
     /**
-     * Insère une date pour l'activité demandé
+     * Insere une date pour l'activite demande
      *
      * @param activity
      * @param index

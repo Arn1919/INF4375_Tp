@@ -99,8 +99,8 @@ public class ImportJsonData {
                                 (String) myObject.get("arrondissement"),
                                 listDates,
                                 new Lieu((String) myObjectLieu.get("nom"),
-                                        (double) myObjectLieu.get("lat"),
-                                        (double) myObjectLieu.get("lng")
+                                        (double) myObjectLieu.get("lng"),
+                                        (double) myObjectLieu.get("lat")
                                 )
                         );
                     } else { // N'a pas de coordonnees
@@ -110,8 +110,8 @@ public class ImportJsonData {
                                 (String) myObject.get("arrondissement"),
                                 listDates,
                                 new Lieu((String) myObjectLieu.get("nom"),
-                                        DEFAULT_LAT,
-                                        DEFAULT_LNG
+                                        DEFAULT_LNG,
+                                        DEFAULT_LAT
                                 )
                         );
                     }
@@ -183,7 +183,7 @@ public class ImportJsonData {
      *
      */
     //@Scheduled(cron = "0 0 0 0 */6 ?")
-    @PostConstruct
+    //@PostConstruct
     public void parsePistes() {
         // Telecharge localement le fichier a l'URL specifier
         try {
@@ -209,8 +209,7 @@ public class ImportJsonData {
                 JSONArray lineStringArray;
                 JSONArray pointArray;
                 Piste piste;
-                String multiLineString = "";
-
+                String multiLineString;
                 // Boucle a travers tableau d objet json, cree activite et insere dans repertoire
                 for (int i = 0; i < features.size(); i++) {
                     // Chargement du feature
@@ -220,6 +219,7 @@ public class ImportJsonData {
                     multiLinesStringArray = (JSONArray) geometry.get("coordinates");
 
                     // Construction de la string Multilinestring
+                    multiLineString = "";
                     multiLineString += "MULTILINESTRING(";
                     for (int j = 0; j < multiLinesStringArray.size(); j++) {
 
@@ -244,7 +244,7 @@ public class ImportJsonData {
                             multiLineString += ", ";
                         }
                     }
-                    multiLineString += ")::geography"; // Termine le multilinestring
+                    multiLineString += ")"; // Termine le multilinestring
 
                     piste = new Piste((int) (double) properties.get("ID"),
                             (int) (double) properties.get("TYPE_VOIE"),
@@ -254,7 +254,6 @@ public class ImportJsonData {
                             (String) properties.get("NOM_ARR_VI"),
                             multiLineString
                     );
-
                     pisteRepository.insert(piste);
 
                 }
@@ -299,8 +298,8 @@ public class ImportJsonData {
                 b.millisLastServerCommunication,
                 b.bk,
                 b.bl,
-                b.lat,
                 b.lng,
+                b.lat,
                 b.availableTerminals,
                 b.unavailableTerminals,
                 b.availableBikes,

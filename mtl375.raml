@@ -1,0 +1,345 @@
+#%RAML 1.0
+title: INF4375 UQAM - Rest API - MTL375
+version: v1
+protocols: [ HTTPS ] 
+baseUri: http://localhost:8080/
+mediaType: application/json
+
+types:
+
+  Activity:
+    type: object
+    properties:
+      id:
+        required: true
+        type: integer
+      nom:
+        required: true
+        type: string
+      description:
+        required: true
+        type: string
+      arrondissement:
+        required: true
+        type: string
+      dates:
+        required: true
+        type: java.util.Date[]
+      lieu:
+        required: true
+        type: Lieu
+
+  Lieu:
+    type: object
+    properties:
+      nom:
+        required: true
+        type: string
+      lat:
+        required: true
+        type: lat
+      lng:
+        required: true
+        type: lng
+
+  Bixi:
+    type: object
+    properties:
+      id:
+        required: true
+        type: integer
+      stationName:
+        required: true
+        type: string
+      stationId:
+        required: true
+        type: string
+      stationState:
+        required: true
+        type: integer
+      stationIsBlocked:
+        required: true
+        type: boolean
+      stationUnderMaintenance:
+        required: true
+        type: boolean
+      stationOutOfOrder:
+        required: true
+        type: boolean
+      millisLastUpdate:
+        required: true
+        type: long
+      millisLastServerCommunication:
+        required: true
+        type: long
+      bk:
+        required: true
+        type: boolean
+      bl:
+        required: true
+        type: boolean
+      lat:
+        required: true
+        type: double
+      lng:
+        required: true
+        type: double
+      availableTerminals:
+        required: true
+        type: integer
+      unavailableTerminals:
+        required: true
+        type: integer
+      availableBikes:
+        required: true
+        type: integer
+      unavailableBikes:
+	required: true
+        type: integer
+
+  Piste:
+    type: object
+    properties:
+      id:
+        required: true
+        type: integer
+      typeVoie1:
+        required: true
+        type: integer
+      typeVoie2:
+        required: true
+        type: integer
+      longueur:
+        required: true
+        type: integer
+      nbrVoie:
+        required: true
+        type: integer
+      nomArrVille:
+        required: true
+        type: string
+      multiLineString:
+        required: true
+        type: string
+
+  Error:
+    type: object
+    properties:
+      code:
+        required: true
+        type: integer
+      message:
+        required: true
+        type: String
+
+  /activites-375e
+
+	get:
+	  description: Affiche toutes les Activity qui correspondent aux critères de la requête;
+                         1- Le rayon, la latitude et/ou la longitude a été saisie
+			 2- La date de départ et/ou la date de fin a été saisie
+			 3- Le rayon, la latitude et/ou la longitude a été saisie et la date de départ et/ou la date de fin a été saisie
+	  queryParameters:
+	    ?du: string
+	    ?au: string
+	    ?rayon: integer
+	    ?lat: integer
+	    ?lng: integer
+          responses:
+            200:
+	      body:
+	        application/json:
+		  type: Activity[]
+		  example:
+		    [
+		      {
+			"id": 279,
+	        	"nom": "Ã€ RDP/PAT, FÃªtons MontrÃ©al! / RiviÃ¨re-des-Prairies danse son hÃ©ritage",
+	        	"description": "",
+	        	"arrondissement": "RiviÃ¨re-des-Prairiesâ€“Pointe-aux-Trembles",
+	        	"dates": [
+	            		"2017-08-26T04:00:00.000Z"
+	        	],
+	        	"lieu": {
+	            		"nom": "Parc Alexis-Carrel",
+	            		"lat": 45.6439805,
+	            		"lng": -73.5888416
+	        	}
+	    	    ]	   
+
+	post:
+	  description: Crée une nouvelle activité
+	  body:
+            application/json:
+	    type: Activity
+            example:
+		{
+	        	"nom": "Ã€ RDP/PAT, FÃªtons MontrÃ©al! / RiviÃ¨re-des-Prairies danse son hÃ©ritage",
+	        	"description": "",
+	        	"arrondissement": "RiviÃ¨re-des-Prairiesâ€“Pointe-aux-Trembles",
+	        	"dates": [
+	            		"2017-08-26T04:00:00.000Z"
+	        	],
+	        	"lieu": {
+	            		"nom": "Parc Alexis-Carrel",
+	            		"lat": 45.6439805,
+	            		"lng": -73.5888416
+	        	}
+	    	}
+          responses:
+            201:
+	      body:
+		application/json:
+		  type: Activity
+		  example:
+		    {
+			"id": 279,
+	        	"nom": "Ã€ RDP/PAT, FÃªtons MontrÃ©al! / RiviÃ¨re-des-Prairies danse son hÃ©ritage",
+	        	"description": "",
+	        	"arrondissement": "RiviÃ¨re-des-Prairiesâ€“Pointe-aux-Trembles",
+	        	"dates": [
+	            		"2017-08-26T04:00:00.000Z"
+	        	],
+	        	"lieu": {
+	            		"nom": "Parc Alexis-Carrel",
+	            		"lat": 45.6439805,
+	            		"lng": -73.5888416
+	        	}
+	    	    }
+
+	/{id}:
+
+	  put:
+	    description: Met à jour un Activity selon id
+	    body:
+	      application/json:
+	        type: Activity
+	        example:
+		  {
+			"id": 279,
+	        	"nom": "Ã€ RDP/PAT, FÃªtons MontrÃ©al! / RiviÃ¨re-des-Prairies danse son hÃ©ritage",
+	        	"description": "",
+	        	"arrondissement": "RiviÃ¨re-des-Prairiesâ€“Pointe-aux-Trembles",
+	        	"dates": [
+	            		"2017-08-26T04:00:00.000Z"
+	        	],
+	        	"lieu": {
+	            		"nom": "Parc Alexis-Carrel",
+	            		"lat": 45.6439805,
+	            		"lng": -73.5888416
+	        	}
+	    	  }
+            responses:
+              200:
+                body:
+		  application/json:
+		    type: Activity
+		    example:
+		      {
+			"id": 279,
+	        	"nom": "Ã€ RDP/PAT, FÃªtons MontrÃ©al! / RiviÃ¨re-des-Prairies danse son hÃ©ritage",
+	        	"description": "",
+	        	"arrondissement": "RiviÃ¨re-des-Prairiesâ€“Pointe-aux-Trembles",
+	        	"dates": [
+	            		"2017-08-26T04:00:00.000Z"
+	        	],
+	        	"lieu": {
+	            		"nom": "Parc Alexis-Carrel",
+	            		"lat": 45.6439805,
+	            		"lng": -73.5888416
+	        	}
+	    	      } 
+
+	  delete:
+            description: Supprime une Activity selon id
+	    responses:
+	      204:
+	      404:
+                body:
+                  application/json:
+	            type: Error
+		    example:
+	
+  /stations-bixi
+		get:
+	  description: Affiche toutes les Bixi qui correspondent aux critères de la requête;
+                         1- Le rayon, la latitude et/ou la longitude a été saisie et/ou le nombre minimal de bixi disponibles. 
+	  queryParameters:
+	    ?min_bixi_dispo: integer
+	    ?rayon: integer
+	    ?lat: integer
+	    ?lng: integer
+          responses:
+            200:
+	      body:
+	        application/json:
+		  type: Bixi[]
+		  example:
+		    [
+		      {
+			"id":1,
+			"s":"HÃ´tel-de-Ville 2 (du Champs-de-Mars / Gosford)",
+			"n":"6001",
+			"st":1,"b":false,
+			"su":false,"m":false,
+			"lu":1500848607545,
+			"lc":1500848848298,
+			"bk":false,
+			"bl":false,
+			"la":45.50931028555171,
+			"lo":-73.55443105101585,
+			"da":5,
+			"dx":0,
+			"ba":10,
+			"bx":0
+		      }
+	    	    ]
+
+  /pistes-cyclables
+	get:
+	  description: Affiche toutes les Piste qui correspondent aux critères de la requête;
+                         1- Le rayon, la latitude et/ou la longitude a été saisie.
+	  queryParameters:
+	    ?rayon: integer
+	    ?lat: integer
+	    ?lng: integer
+          responses:
+            200:
+	      body:
+	        application/json:
+		  type: Piste[]
+		  example:
+		    [
+		      { 
+			"type": "Feature",
+		        "properties": { 
+					"ID": 2.000000, 
+					"ID_TRC_GEO": 0.000000, 
+					"TYPE_VOIE": 5.000000, 
+					"TYPE_VOIE2": 0.000000, 
+					"LONGUEUR": 20.000000, 
+					"NBR_VOIE": 2.000000, 
+					"SEPARATEUR": null, 
+					"SAISONS4": "NON", 
+					"PROTEGE_4S": "NON", 
+					"Ville_MTL": "OUI", 
+					"NOM_ARR_VI": "Rivière-des-PrairiesPointe-aux-Trembles" 
+			}, 
+			"geometry": { 
+					"type": "MultiLineString",
+				        "coordinates": [ 
+						         [ 
+							   [ 305049.61924019549, 5061761.891977313, 0.0 ],
+							   [ 305038.71863293805, 5061778.6942898557, 0.0 ]
+							 ]
+						       ] 
+			} 
+		      }
+	    	    ]
+
+
+
+
+
+
+

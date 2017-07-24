@@ -34,8 +34,8 @@ public class ActivityRowMapper implements RowMapper<Activity> {
                 dates,
                 new Lieu(
                         rs.getString("venue_name"),
-                        rs.getDouble("lat"),
-                        rs.getDouble("lng")
+                        rs.getDouble("lng"),
+                        rs.getDouble("lat")
                 )
         );
     }

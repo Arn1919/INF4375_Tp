@@ -29,109 +29,17 @@ public class BixiRepository {
             + "   , millis_last_server_communication"
             + "   , bk"
             + "   , bl"
-            + "   , ST_X(coordinates::geometry) AS lat"
-            + "   , ST_Y(coordinates::geometry) AS lng"
+            + "   , ST_X(coordinates::geometry) AS lng"
+            + "   , ST_Y(coordinates::geometry) AS lat"
             + "   , available_terminals"
             + "   , unavailable_terminals"
             + "   , available_bikes"
             + "   , unavailable_bikes"
             + " from"
             + "   bixies";
-
-    public List<Bixi> findAll() {
-        return jdbcTemplate.query(FIND_ALL_STMT, new BixiRowMapper());
-    }
     
     public List<Bixi> findByParams(String paramsStmt){
         return jdbcTemplate.query(FIND_ALL_STMT + paramsStmt, new BixiRowMapper());
-    }
-
-    private static final String FIND_BY_ID_STMT
-            = " select"
-            + "     id"
-            + "   , station_name"
-            + "   , station_id"
-            + "   , station_state"
-            + "   , station_is_blocked"
-            + "   , station_under_maintenance"
-            + "   , station_out_of_order"
-            + "   , millis_last_update"
-            + "   , millis_last_server_communication"
-            + "   , bk"
-            + "   , bl"
-            + "   , ST_X(coordinates::geometry) AS lat"
-            + "   , ST_Y(coordinates::geometry) AS lng"
-            + "   , available_terminals"
-            + "   , unavailable_terminals"
-            + "   , available_bikes"
-            + "   , unavailable_bikes"
-            + " from"
-            + "   bixies"
-            + " where"
-            + "   id = ?";
-
-    public Bixi findById(int id) {
-        return jdbcTemplate.queryForObject(FIND_BY_ID_STMT, new Object[]{id}, new BixiRowMapper());
-    }
-
-    private static final String FIND_BY_STATION_NAME_STMT
-            = " select"
-            + "     id"
-            + "   , ts_headline(station_name, q, 'HighlightAll = true') as station_name"
-            + "   , station_id"
-            + "   , station_state"
-            + "   , station_is_blocked"
-            + "   , station_under_maintenance"
-            + "   , station_out_of_order"
-            + "   , millis_last_update"
-            + "   , millis_last_server_communication"
-            + "   , bk"
-            + "   , bl"
-            + "   , ST_X(coordinates::geometry) AS lat"
-            + "   , ST_Y(coordinates::geometry) AS lng"
-            + "   , available_terminals"
-            + "   , unavailable_terminals"
-            + "   , available_bikes"
-            + "   , unavailable_bikes"
-            + " from"
-            + "     bixies"
-            + "   , to_tsquery(?) as q"
-            + " where"
-            + "   station_name @@ q"
-            + " order by"
-            + "   ts_rank_cd(to_tsvector(station_name), q) desc";
-
-    public List<Bixi> findByName(String... tsterms) {
-        String tsquery = Arrays.stream(tsterms).collect(Collectors.joining(" & "));
-        return jdbcTemplate.query(FIND_BY_STATION_NAME_STMT, new Object[]{tsquery}, new BixiRowMapper());
-    }
-    
-    private static final String FIND_BY_RADIUS_STMT
-            = " select"
-            + "     id"
-            + "   , station_name"
-            + "   , station_id"
-            + "   , station_state"
-            + "   , station_is_blocked"
-            + "   , station_under_maintenance"
-            + "   , station_out_of_order"
-            + "   , millis_last_update"
-            + "   , millis_last_server_communication"
-            + "   , bk"
-            + "   , bl"
-            + "   , ST_X(coordinates::geometry) AS lat"
-            + "   , ST_Y(coordinates::geometry) AS lng"
-            + "   , available_terminals"
-            + "   , unavailable_terminals"
-            + "   , available_bikes"
-            + "   , unavailable_bikes"
-            + " from"
-            + "     bixies"
-            + " where"
-            + "     ST_DWithin(coordinates, ST_MakePoint(?, ?) , ?)";
-    
-    public List<Bixi> findByRadius() {
-        return jdbcTemplate.query(FIND_BY_RADIUS_STMT, new BixiRowMapper());
     }
     
     private static final String INSERT_STMT
@@ -176,8 +84,8 @@ public class BixiRepository {
             ps.setLong(9, bixi.getMillisLastServerCommunication());
             ps.setBoolean(10, bixi.getBk());
             ps.setBoolean(11, bixi.getBl());
-            ps.setDouble(12, bixi.getLat());
-            ps.setDouble(13, bixi.getLng());
+            ps.setDouble(12, bixi.getLng());
+            ps.setDouble(13, bixi.getLat());
             ps.setInt(14, bixi.getAvailableTerminals());
             ps.setInt(15, bixi.getUnavailableTerminals());
             ps.setInt(16, bixi.getAvailableBikes());

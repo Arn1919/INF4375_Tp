@@ -42,7 +42,7 @@ public class PisteRepository {
             + "   , longueur"
             + "   , nbr_voie"
             + "   , nom_arr_ville"
-            // SOMETHING ABOUT LINESTRING
+            + "   , ST_AsText(piste) AS multistring"
             + " FROM"
             + "     pistes";
 
@@ -86,7 +86,7 @@ public class PisteRepository {
             + "     nom_arr_ville, "
             + "     piste"
             + " ) "
-            + " VALUES (?, ?, ?, ?, ?, ?, ?::geography) "
+            + " VALUES (?, ?, ?, ?, ?, ?, ST_GeomFromText(?, 2950)) "
             + " on conflict do nothing";
 
     public void insert(Piste piste) throws Exception {

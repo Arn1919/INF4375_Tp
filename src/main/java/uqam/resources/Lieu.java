@@ -16,10 +16,10 @@ public class Lieu {
 
     }
 
-    public Lieu(String nom, double lat, double lng) {
+    public Lieu(String nom, double lng, double lat) {
         this.nom = nom;
-        this.lat = lat;
         this.lng = lng;
+        this.lat = lat;
     }
 
     // Getters
