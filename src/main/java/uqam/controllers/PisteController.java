@@ -26,27 +26,26 @@ public class PisteController {
     private static final double DEFAULT_LAT = 45.50894093;
     private static final double DEFAULT_LNG = -73.56863737;
     private static final int DEFAULT_RADIUS = 200;
-    
+
     @Autowired
     PisteRepository pisteRepository;
-    
+
     /**
      * HTTP Method : GET avec parametres
-     * 
+     *
      * @param rayon
      * @param lat
      * @param lng
      * @return List<Piste>
      */
     @RequestMapping(method = RequestMethod.GET)
-    public List<Piste> get(@RequestParam(value="rayon", defaultValue = "200") Integer rayon, 
-            @RequestParam(value="lat") Double lat, @RequestParam(value="lng") Double lng) {
+    public List<Piste> get(@RequestParam(value = "rayon", defaultValue = "200", required = false) Integer rayon,
+            @RequestParam(value = "lat", required = true) Double lat,
+            @RequestParam(value = "lng", required = true) Double lng) {
         String paramsStmt = " WHERE";
         paramsStmt += " ST_DWITHIN(ST_TRANSFORM(ST_SetSrid(piste, 2950), 4326)::geography, ";
-        paramsStmt += " ST_MakePoint(" + lng + "," + lat + "), "+ + rayon +")";
-        
+        paramsStmt += " ST_MakePoint(" + lng + "," + lat + "), " + +rayon + ")";
+
         return pisteRepository.findByParams(paramsStmt);
     }
 }
-
-

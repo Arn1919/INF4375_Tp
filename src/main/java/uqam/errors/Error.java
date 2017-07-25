@@ -9,7 +9,7 @@ package uqam.errors;
  *
  * @author arnaud
  */
-public class Error {
+public class Error  extends Exception{
     
     private int code;
     private String message;
@@ -18,7 +18,8 @@ public class Error {
         this.code = code;
         this.message = message;
     }
-
+    
+    // Getters
     public int getCode() {
         return code;
     }
@@ -26,4 +27,15 @@ public class Error {
     public String getMessage() {
         return message;
     }
+    
+    // Setters
+    public void setCode(int code) { 
+        this.code = code; 
+    }
+    
+    public void setMessage(String message){
+        this.message = message;
+    }
+    
+
 }

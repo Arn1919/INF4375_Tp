@@ -62,7 +62,7 @@ public class ImportJsonData {
      * insere dans le repositoire
      *
      */
-    //@PostConstruct
+    @PostConstruct
     public void parseActivities() {
 
         // Validation du json par le schema
@@ -144,8 +144,8 @@ public class ImportJsonData {
      * repositoire
      *
      */
-    //@Scheduled(cron = "0 */10 * * * ?") // à toutes les 2 secondes.
-    //@PostConstruct
+    @Scheduled(cron = "* */10 * * * ?") // à toutes les 2 secondes.
+    @PostConstruct
     public void parseBixies() {
         try {
             // Valide le json selon JsonSchema
@@ -182,8 +182,8 @@ public class ImportJsonData {
      * le repositoire
      *
      */
-    //@Scheduled(cron = "0 0 0 0 */6 ?")
-    //@PostConstruct
+    @Scheduled(cron = "* * * * */6 ?")
+    @PostConstruct
     public void parsePistes() {
         // Telecharge localement le fichier a l'URL specifier
         try {

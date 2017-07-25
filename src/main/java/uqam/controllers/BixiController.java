@@ -35,7 +35,7 @@ public class BixiController{
      * @return List<Bixi>
      */
     @RequestMapping(method = RequestMethod.GET)
-    public List<Bixi> get(@RequestParam(value="min_bixi_dispo", defaultValue = "0") Integer min_bixi_dispo,
+    public List<Bixi> get(@RequestParam(value="min_bixi_dispo", defaultValue = "0", required = false) Integer min_bixi_dispo,
             @RequestParam(value="rayon", defaultValue = "1000") Integer rayon, 
             @RequestParam(value="lat", defaultValue = "45.50894093") Double lat, 
             @RequestParam(value="lng", defaultValue = "-73.56863737") Double lng) {

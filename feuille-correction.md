@@ -2,9 +2,7 @@
 
 ## Constitution de l'équipe
 
-- Code permanent: 
-- Code permanent: 
-- Code permanent: 
+- Code permanent: DUPA10029407
 
 ## Fonctionnalités à corriger
 
